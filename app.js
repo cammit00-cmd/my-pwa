@@ -1715,6 +1715,308 @@ function renderActivity() {
             .join("");
 }
 
+/* ================================
+   CHAT
+   ================================ */
+
+function getChatHistory() {
+
+    if (!Array.isArray(state.chatHistory)) {
+        state.chatHistory = [];
+    }
+
+    return state.chatHistory;
+}
+
+
+function saveChatHistory() {
+
+    saveState();
+}
+
+
+function renderChat() {
+
+    const container =
+        document.getElementById(
+            "chatMessages"
+        );
+
+    if (!container) {
+        return;
+    }
+
+
+    const history =
+        getChatHistory();
+
+
+    if (!history.length) {
+
+        container.innerHTML = `
+
+            <div class="chat-empty">
+
+                <div class="empty-icon">
+                    AI
+                </div>
+
+                <strong>
+                    Nexus is ready
+                </strong>
+
+                <span>
+                    Start a conversation with your local AI.
+                </span>
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        history
+            .map(message => `
+
+                <div
+                    class="
+                        chat-message
+                        ${message.role === "user"
+                            ? "user-message"
+                            : "assistant-message"}
+                    "
+                >
+
+                    <div class="chat-message-label">
+                        ${
+                            message.role === "user"
+                                ? "YOU"
+                                : "NEXUS"
+                        }
+                    </div>
+
+                    <div class="chat-message-content">
+                        ${escapeHTML(message.content)}
+                    </div>
+
+                </div>
+
+            `)
+            .join("");
+
+
+    container.scrollTop =
+        container.scrollHeight;
+}
+
+
+async function sendChatMessage() {
+
+    const input =
+        document.getElementById(
+            "chatInput"
+        );
+
+    const button =
+        document.getElementById(
+            "sendChatButton"
+        );
+
+    if (!input) {
+        return;
+    }
+
+
+    const message =
+        input.value.trim();
+
+
+    if (!message) {
+        return;
+    }
+
+
+    if (!webLLMEngine) {
+
+        alert(
+            "Load the Local AI model first."
+        );
+
+        return;
+    }
+
+
+    const history =
+        getChatHistory();
+
+
+    history.push({
+
+        role: "user",
+
+        content: message,
+
+        timestamp:
+            new Date().toISOString()
+
+    });
+
+
+    input.value = "";
+
+    saveChatHistory();
+
+    renderChat();
+
+
+    if (button) {
+
+        button.disabled = true;
+
+        button.textContent =
+            "Thinking...";
+
+    }
+
+
+    try {
+
+        const messages = [
+
+            {
+                role: "system",
+
+                content:
+                    "You are Nexus, a personal AI assistant. " +
+                    "Be helpful, direct, intelligent, and concise."
+            },
+
+            ...history.map(item => ({
+
+                role:
+                    item.role,
+
+                content:
+                    item.content
+
+            }))
+
+        ];
+
+
+        const response =
+            await webLLMEngine
+                .chat
+                .completions
+                .create({
+
+                    messages: messages,
+
+                    temperature: 0.7,
+
+                    max_tokens: 512
+
+                });
+
+
+        const responseText =
+            response
+                ?.choices?.[0]
+                ?.message
+                ?.content
+                ||
+            "Nexus returned no response.";
+
+
+        history.push({
+
+            role: "assistant",
+
+            content: responseText,
+
+            timestamp:
+                new Date().toISOString()
+
+        });
+
+
+        saveChatHistory();
+
+        renderChat();
+
+
+    } catch (error) {
+
+        console.error(
+            "Nexus chat error:",
+            error
+        );
+
+
+        history.push({
+
+            role: "assistant",
+
+            content:
+                `Error: ${error.message}`,
+
+            timestamp:
+                new Date().toISOString()
+
+        });
+
+
+        saveChatHistory();
+
+        renderChat();
+
+
+    } finally {
+
+        if (button) {
+
+            button.disabled = false;
+
+            button.textContent =
+                "Send";
+
+        }
+
+    }
+}
+
+
+function newChat() {
+
+    if (!getChatHistory().length) {
+        return;
+    }
+
+
+    const confirmed =
+        confirm(
+            "Start a new conversation? The current conversation will be cleared."
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    state.chatHistory = [];
+
+    saveChatHistory();
+
+    renderChat();
+
+    addActivity(
+        "Started a new chat."
+    );
+}
 
 /* ================================
    COMMANDS
