@@ -1,123 +1,108 @@
-/* =========================================================
-   NEXUS — PHASE 2
-   TASK ENGINE
-   ========================================================= */
+// ================================
+// NEXUS — CORE APPLICATION ENGINE
+// ================================
 
 const STORAGE_KEY = "nexus_state_v2";
 
-
-/* =========================================================
-   DEFAULT STATE
-   ========================================================= */
+// --------------------------------
+// DEFAULT STATE
+// --------------------------------
 
 const defaultState = {
     agents: [
         {
             id: "general",
             name: "General",
-            description: "General-purpose AI assistant",
-            personality: "Helpful, precise, adaptable",
-            instructions:
-                "Assist with general tasks and coordinate with other agents when appropriate.",
+            description: "General-purpose AI assistant.",
+            instructions: "Help the user accomplish their objective.",
+            personality: "Helpful, direct, capable.",
             permissions: {
                 files: true,
                 web: true,
                 tools: true
             },
-            createdAt: Date.now()
+            builtIn: true
         },
         {
             id: "researcher",
             name: "Researcher",
-            description: "Research, investigation, and information analysis",
-            personality: "Thorough, skeptical, evidence-driven",
-            instructions:
-                "Research topics, compare sources, identify important information, and summarize findings.",
+            description: "Research and information analysis.",
+            instructions: "Research topics and organize useful information.",
+            personality: "Thorough, analytical, skeptical.",
             permissions: {
                 files: true,
                 web: true,
                 tools: true
             },
-            createdAt: Date.now()
+            builtIn: true
         },
         {
             id: "coder",
             name: "Coder",
-            description: "Software development and technical problem solving",
-            personality: "Logical, methodical, solution-focused",
-            instructions:
-                "Write, debug, explain, and improve software.",
+            description: "Software development and debugging.",
+            instructions: "Write, analyze, debug, and improve software.",
+            personality: "Precise, technical, systematic.",
             permissions: {
                 files: true,
                 web: true,
                 tools: true
             },
-            createdAt: Date.now()
+            builtIn: true
         },
         {
             id: "writer",
             name: "Writer",
-            description: "Writing, editing, and content creation",
-            personality: "Clear, creative, adaptable",
-            instructions:
-                "Create and improve written content according to the user's goals.",
+            description: "Writing and content creation.",
+            instructions: "Create clear, polished written content.",
+            personality: "Creative, clear, adaptable.",
             permissions: {
                 files: true,
                 web: false,
                 tools: false
             },
-            createdAt: Date.now()
+            builtIn: true
         },
         {
             id: "analyst",
             name: "Analyst",
-            description: "Data analysis and structured reasoning",
-            personality: "Objective, analytical, detail-oriented",
-            instructions:
-                "Analyze information, identify patterns, and produce useful conclusions.",
+            description: "Analysis and decision support.",
+            instructions: "Break down information and identify useful conclusions.",
+            personality: "Logical, objective, detail-oriented.",
             permissions: {
                 files: true,
                 web: true,
                 tools: true
             },
-            createdAt: Date.now()
+            builtIn: true
         },
         {
             id: "manager",
             name: "Manager",
-            description: "Task planning and multi-agent orchestration",
-            personality: "Organized, strategic, decisive",
-            instructions:
-                "Break objectives into tasks and coordinate specialized agents.",
+            description: "Coordinates agents and tasks.",
+            instructions: "Break objectives into tasks and coordinate execution.",
+            personality: "Organized, strategic, decisive.",
             permissions: {
                 files: true,
                 web: true,
                 tools: true
             },
-            createdAt: Date.now()
+            builtIn: true
         }
     ],
 
     tasks: [],
-
     projects: [],
-
     activity: [],
 
     settings: {
-        securityLevel: "LIMITED",
-        autoApproveSafeActions: true,
-        localFirst: true
+        theme: "dark"
     }
 };
 
 
-/* =========================================================
-   STATE
-   ========================================================= */
-
-let state = loadState();
-
+// --------------------------------
+// LOAD / SAVE STATE
+// --------------------------------
 
 function loadState() {
 
@@ -126,29 +111,50 @@ function loadState() {
         const saved =
             localStorage.getItem(STORAGE_KEY);
 
-        if (saved) {
-
-            const parsed = JSON.parse(saved);
-
-            return {
-                ...defaultState,
-                ...parsed
-            };
+        if (!saved) {
+            return defaultState;
         }
+
+        const parsed = JSON.parse(saved);
+
+        return {
+            ...defaultState,
+            ...parsed,
+
+            agents:
+                Array.isArray(parsed.agents)
+                    ? parsed.agents
+                    : defaultState.agents,
+
+            tasks:
+                Array.isArray(parsed.tasks)
+                    ? parsed.tasks
+                    : [],
+
+            projects:
+                Array.isArray(parsed.projects)
+                    ? parsed.projects
+                    : [],
+
+            activity:
+                Array.isArray(parsed.activity)
+                    ? parsed.activity
+                    : []
+        };
 
     } catch (error) {
 
         console.error(
-            "Nexus state loading failed:",
+            "Nexus state could not be loaded:",
             error
         );
 
+        return defaultState;
     }
-
-    return JSON.parse(
-        JSON.stringify(defaultState)
-    );
 }
+
+
+let state = loadState();
 
 
 function saveState() {
@@ -163,19 +169,18 @@ function saveState() {
     } catch (error) {
 
         console.error(
-            "Nexus state saving failed:",
+            "Nexus state could not be saved:",
             error
         );
-
     }
 }
 
 
-/* =========================================================
-   UTILITIES
-   ========================================================= */
+// --------------------------------
+// UTILITIES
+// --------------------------------
 
-function createId(prefix) {
+function generateId(prefix = "id") {
 
     return (
         prefix +
@@ -184,17 +189,14 @@ function createId(prefix) {
         "_" +
         Math.random()
             .toString(36)
-            .substring(2, 9)
+            .substring(2, 8)
     );
 }
 
 
 function escapeHTML(value) {
 
-    if (
-        value === undefined ||
-        value === null
-    ) {
+    if (value === undefined || value === null) {
         return "";
     }
 
@@ -207,36 +209,26 @@ function escapeHTML(value) {
 }
 
 
-function formatTime(timestamp) {
-
-    return new Date(timestamp)
-        .toLocaleTimeString([], {
-            hour: "numeric",
-            minute: "2-digit"
-        });
-}
-
-
-/* =========================================================
-   ACTIVITY ENGINE
-   ========================================================= */
+// --------------------------------
+// ACTIVITY
+// --------------------------------
 
 function addActivity(message) {
 
     state.activity.unshift({
 
-        id: createId("activity"),
+        id: generateId("activity"),
 
-        message,
+        message: message,
 
-        timestamp: Date.now()
-
+        timestamp: new Date().toISOString()
     });
 
 
-    state.activity =
-        state.activity.slice(0, 100);
+    // Keep activity history manageable.
 
+    state.activity =
+        state.activity.slice(0, 50);
 
     saveState();
 
@@ -244,97 +236,24 @@ function addActivity(message) {
 }
 
 
-function renderActivity() {
-
-    const container =
-        document.getElementById(
-            "activityContainer"
-        );
-
-
-    if (!container) return;
-
-
-    if (!state.activity.length) {
-
-        container.innerHTML = `
-
-            <div class="empty-state compact">
-
-                <div class="empty-icon">
-                    ◌
-                </div>
-
-                <strong>
-                    No recent activity
-                </strong>
-
-                <span>
-                    Nexus activity will appear here.
-                </span>
-
-            </div>
-
-        `;
-
-        return;
-    }
-
-
-    container.innerHTML =
-        state.activity
-            .slice(0, 15)
-            .map(item => `
-
-                <div class="activity-item">
-
-                    <div class="activity-indicator"></div>
-
-                    <div class="activity-content">
-
-                        <strong>
-                            ${escapeHTML(
-                                item.message
-                            )}
-                        </strong>
-
-                        <span>
-                            Nexus
-                        </span>
-
-                    </div>
-
-                    <time>
-                        ${formatTime(
-                            item.timestamp
-                        )}
-                    </time>
-
-                </div>
-
-            `)
-            .join("");
-}
-
-
-/* =========================================================
-   NAVIGATION
-   ========================================================= */
+// --------------------------------
+// NAVIGATION
+// --------------------------------
 
 function showView(viewId) {
 
-    document
-        .querySelectorAll(".view")
-        .forEach(view => {
+    const views =
+        document.querySelectorAll(".view");
 
-            view.classList.remove("active");
+    views.forEach(view => {
 
-        });
+        view.classList.remove("active");
+
+    });
 
 
     const target =
         document.getElementById(viewId);
-
 
     if (target) {
 
@@ -343,34 +262,42 @@ function showView(viewId) {
     }
 
 
-    document
-        .querySelectorAll(".nav-item")
-        .forEach(button => {
+    const navItems =
+        document.querySelectorAll(".nav-item");
 
-            button.classList.toggle(
-                "active",
-                button.dataset.view === viewId
-            );
+    navItems.forEach(item => {
 
-        });
+        item.classList.remove("active");
 
+        if (
+            item.dataset.view === viewId
+        ) {
+
+            item.classList.add("active");
+
+        }
+
+    });
+
+
+    // Refresh data whenever a page is opened.
 
     renderAll();
 }
 
 
-/* =========================================================
-   AGENTS
-   ========================================================= */
+// --------------------------------
+// AGENTS
+// --------------------------------
 
 function renderAgents() {
 
-    const dashboard =
+    const dashboardContainer =
         document.getElementById(
             "agentsContainer"
         );
 
-    const full =
+    const fullContainer =
         document.getElementById(
             "fullAgentsContainer"
         );
@@ -383,48 +310,26 @@ function renderAgents() {
                 <div class="agent-card">
 
                     <div class="agent-avatar">
-
                         ${escapeHTML(
                             agent.name
                                 .charAt(0)
                                 .toUpperCase()
                         )}
-
                     </div>
 
                     <div class="agent-info">
 
-                        <div class="agent-name">
-
+                        <strong>
                             ${escapeHTML(
                                 agent.name
                             )}
+                        </strong>
 
-                        </div>
-
-                        <div class="agent-description">
-
+                        <span>
                             ${escapeHTML(
                                 agent.description
                             )}
-
-                        </div>
-
-                        <div class="agent-meta">
-
-                            <span>
-                                LOCAL
-                            </span>
-
-                            <span>
-
-                                ${escapeHTML(
-                                    agent.personality
-                                )}
-
-                            </span>
-
-                        </div>
+                        </span>
 
                     </div>
 
@@ -434,26 +339,24 @@ function renderAgents() {
             .join("");
 
 
-    if (dashboard) {
+    if (dashboardContainer) {
 
-        dashboard.innerHTML =
+        dashboardContainer.innerHTML =
             agentHTML;
-
     }
 
 
-    if (full) {
+    if (fullContainer) {
 
-        full.innerHTML =
+        fullContainer.innerHTML =
             agentHTML;
-
     }
 }
 
 
-/* =========================================================
-   AGENT MODAL
-   ========================================================= */
+// --------------------------------
+// AGENT MODAL
+// --------------------------------
 
 function openAgentModal() {
 
@@ -462,29 +365,13 @@ function openAgentModal() {
             "agentModal"
         );
 
-
-    if (!modal) return;
-
-
-    modal.classList.remove(
-        "hidden"
-    );
-
-
-    const name =
-        document.getElementById(
-            "agentName"
-        );
-
-
-    if (name) {
-
-        setTimeout(
-            () => name.focus(),
-            100
-        );
-
+    if (!modal) {
+        return;
     }
+
+    modal.classList.remove("hidden");
+
+    modal.classList.add("active");
 }
 
 
@@ -495,65 +382,40 @@ function closeAgentModal() {
             "agentModal"
         );
 
+    if (!modal) {
+        return;
+    }
 
-    if (!modal) return;
+    modal.classList.add("hidden");
 
-
-    modal.classList.add(
-        "hidden"
-    );
+    modal.classList.remove("active");
 }
 
 
-function clearAgentForm() {
-
-    [
-        "agentName",
-        "agentDescription",
-        "agentInstructions",
-        "agentPersonality"
-    ].forEach(id => {
-
-        const element =
-            document.getElementById(id);
-
-        if (element) {
-
-            element.value = "";
-
-        }
-
-    });
-
-
-    [
-        "permissionFiles",
-        "permissionWeb",
-        "permissionTools"
-    ].forEach(id => {
-
-        const element =
-            document.getElementById(id);
-
-        if (element) {
-
-            element.checked = false;
-
-        }
-
-    });
-}
-
-
-function createAgent() {
+function saveAgent() {
 
     const name =
-        document
-            .getElementById(
-                "agentName"
-            )
-            ?.value
-            .trim();
+        document.getElementById(
+            "agentName"
+        )?.value.trim();
+
+
+    const description =
+        document.getElementById(
+            "agentDescription"
+        )?.value.trim();
+
+
+    const instructions =
+        document.getElementById(
+            "agentInstructions"
+        )?.value.trim();
+
+
+    const personality =
+        document.getElementById(
+            "agentPersonality"
+        )?.value.trim();
 
 
     if (!name) {
@@ -563,70 +425,46 @@ function createAgent() {
         );
 
         return;
-
     }
 
 
     const agent = {
 
-        id: createId("agent"),
+        id: generateId("agent"),
 
-        name,
+        name: name,
 
         description:
-            document
-                .getElementById(
-                    "agentDescription"
-                )
-                ?.value
-                .trim() ||
-            "Custom Nexus AI worker",
+            description ||
+            "Custom Nexus agent.",
 
         instructions:
-            document
-                .getElementById(
-                    "agentInstructions"
-                )
-                ?.value
-                .trim() ||
-            "Assist the user according to the assigned objective.",
+            instructions ||
+            "Complete the user's objective.",
 
         personality:
-            document
-                .getElementById(
-                    "agentPersonality"
-                )
-                ?.value
-                .trim() ||
-            "Professional, helpful, adaptable",
+            personality ||
+            "Helpful and capable.",
 
         permissions: {
 
             files:
-                document
-                    .getElementById(
-                        "permissionFiles"
-                    )
-                    ?.checked || false,
+                document.getElementById(
+                    "permissionFiles"
+                )?.checked || false,
 
             web:
-                document
-                    .getElementById(
-                        "permissionWeb"
-                    )
-                    ?.checked || false,
+                document.getElementById(
+                    "permissionWeb"
+                )?.checked || false,
 
             tools:
-                document
-                    .getElementById(
-                        "permissionTools"
-                    )
-                    ?.checked || false
-
+                document.getElementById(
+                    "permissionTools"
+                )?.checked || false
         },
 
-        createdAt: Date.now()
-
+        builtIn: false
     };
 
 
@@ -634,82 +472,81 @@ function createAgent() {
 
     saveState();
 
-
     addActivity(
-        `Agent created: ${agent.name}`
+        `Created agent: ${agent.name}`
     );
 
 
-    clearAgentForm();
+    // Clear form.
+
+    const fields = [
+        "agentName",
+        "agentDescription",
+        "agentInstructions",
+        "agentPersonality"
+    ];
+
+
+    fields.forEach(id => {
+
+        const element =
+            document.getElementById(id);
+
+        if (element) {
+            element.value = "";
+        }
+
+    });
+
 
     closeAgentModal();
 
-    renderAgents();
+    renderAll();
 }
 
 
-/* =========================================================
-   TASK CREATION
-   ========================================================= */
+// --------------------------------
+// TASK ENGINE
+// --------------------------------
 
-function executeCommand() {
+function createTask(objective) {
 
-    const input =
-        document.getElementById(
-            "commandInput"
-        );
-
-
-    if (!input) return;
-
-
-    const objective =
-        input.value.trim();
+    objective =
+        String(objective || "").trim();
 
 
     if (!objective) {
 
-        input.focus();
+        alert(
+            "Enter an objective first."
+        );
 
         return;
-
     }
 
 
-    createTask(objective);
-
-    input.value = "";
-
-}
-
-
-function createTask(objective) {
-
-    const manager =
-        state.agents.find(
-            agent =>
-                agent.id === "manager"
-        ) ||
+    const agent =
         state.agents[0];
 
 
     const task = {
 
-        id: createId("task"),
+        id: generateId("task"),
 
-        objective,
+        objective: objective,
 
         agentId:
-            manager.id,
+            agent?.id || "general",
 
         agentName:
-            manager.name,
+            agent?.name || "General",
 
         status: "queued",
 
         progress: 0,
 
-        createdAt: Date.now(),
+        createdAt:
+            new Date().toISOString(),
 
         startedAt: null,
 
@@ -720,47 +557,26 @@ function createTask(objective) {
         steps: [
 
             {
-                id: createId("step"),
-
-                name:
-                    "Understand objective",
-
+                name: "Understand objective",
                 status: "pending"
-
             },
 
             {
-                id: createId("step"),
-
-                name:
-                    "Create execution plan",
-
+                name: "Create execution plan",
                 status: "pending"
-
             },
 
             {
-                id: createId("step"),
-
-                name:
-                    "Execute work",
-
+                name: "Execute work",
                 status: "pending"
-
             },
 
             {
-                id: createId("step"),
-
-                name:
-                    "Evaluate result",
-
+                name: "Evaluate result",
                 status: "pending"
-
             }
 
         ]
-
     };
 
 
@@ -770,248 +586,192 @@ function createTask(objective) {
 
 
     addActivity(
-        `Task created: ${objective}`
+        `Created task: ${task.objective}`
     );
 
 
-    renderTasks();
+    renderAll();
 
 
     showView("tasksView");
 
 
-    /*
-       Start the Phase 2 simulation.
-
-       This gives us the task lifecycle
-       before connecting a real AI model.
-    */
+    // Start execution.
 
     startTask(task.id);
 }
 
 
-/* =========================================================
-   TASK EXECUTION ENGINE
-   ========================================================= */
-
 function startTask(taskId) {
 
     const task =
         state.tasks.find(
-            item =>
-                item.id === taskId
+            item => item.id === taskId
         );
 
 
-    if (!task) return;
+    if (!task) {
+        return;
+    }
 
 
-    task.status =
-        "running";
+    task.status = "running";
 
     task.startedAt =
-        Date.now();
+        new Date().toISOString();
 
-    task.progress =
-        10;
+    task.progress = 10;
 
     task.steps[0].status =
-        "complete";
+        "completed";
 
 
     saveState();
 
-
-    addActivity(
-        `Task started: ${task.objective}`
-    );
+    renderAll();
 
 
-    renderTasks();
+    setTimeout(() => {
 
+        advanceTask(taskId);
 
-    /*
-       Simulated execution stages.
-
-       These will eventually be replaced
-       by real agent/model execution.
-    */
-
-    setTimeout(
-        () => advanceTask(
-            taskId,
-            1,
-            35
-        ),
-        1000
-    );
-
+    }, 1000);
 }
 
 
-function advanceTask(
-    taskId,
-    stepIndex,
-    progress
-) {
+function advanceTask(taskId) {
 
     const task =
         state.tasks.find(
-            item =>
-                item.id === taskId
+            item => item.id === taskId
         );
 
 
-    if (!task) return;
-
-
-    if (
-        task.status ===
-            "cancelled" ||
-        task.status ===
-            "completed"
-    ) {
-
+    if (!task) {
         return;
-
     }
 
 
-    task.steps[stepIndex].status =
-        "complete";
+    if (task.status !== "running") {
+        return;
+    }
+
+
+    const pendingIndex =
+        task.steps.findIndex(
+            step =>
+                step.status === "pending"
+        );
+
+
+    if (pendingIndex === -1) {
+
+        completeTask(taskId);
+
+        return;
+    }
+
+
+    task.steps[pendingIndex].status =
+        "completed";
 
 
     task.progress =
-        progress;
+        Math.min(
+            100,
+            Math.round(
+                (
+                    task.steps.filter(
+                        step =>
+                            step.status ===
+                            "completed"
+                    ).length /
+                    task.steps.length
+                ) * 100
+            )
+        );
 
 
     saveState();
 
-
-    addActivity(
-        `${task.steps[stepIndex].name}: ${task.objective}`
-    );
+    renderAll();
 
 
-    renderTasks();
+    setTimeout(() => {
 
+        advanceTask(taskId);
 
-    if (
-        stepIndex <
-        task.steps.length - 1
-    ) {
-
-        setTimeout(
-            () =>
-                advanceTask(
-                    taskId,
-                    stepIndex + 1,
-                    Math.min(
-                        progress + 25,
-                        90
-                    )
-                ),
-            1200
-        );
-
-        return;
-
-    }
-
-
-    completeTask(taskId);
+    }, 1000);
 }
 
-
-/* =========================================================
-   TASK COMPLETION
-   ========================================================= */
 
 function completeTask(taskId) {
 
     const task =
         state.tasks.find(
-            item =>
-                item.id === taskId
+            item => item.id === taskId
         );
 
 
-    if (!task) return;
+    if (!task) {
+        return;
+    }
 
 
-    task.status =
-        "completed";
+    task.status = "completed";
 
-    task.progress =
-        100;
+    task.progress = 100;
 
     task.completedAt =
-        Date.now();
+        new Date().toISOString();
 
 
     saveState();
 
 
     addActivity(
-        `Task completed: ${task.objective}`
+        `Completed task: ${task.objective}`
     );
 
 
-    renderTasks();
-
+    renderAll();
 }
 
-
-/* =========================================================
-   TASK CANCELLATION
-   ========================================================= */
 
 function cancelTask(taskId) {
 
     const task =
         state.tasks.find(
-            item =>
-                item.id === taskId
+            item => item.id === taskId
         );
 
 
-    if (!task) return;
-
-
-    if (
-        task.status ===
-        "completed"
-    ) {
-
+    if (!task) {
         return;
-
     }
 
 
-    task.status =
-        "cancelled";
+    task.status = "cancelled";
 
     task.cancelledAt =
-        Date.now();
+        new Date().toISOString();
 
 
     saveState();
 
 
     addActivity(
-        `Task cancelled: ${task.objective}`
+        `Cancelled task: ${task.objective}`
     );
 
 
-    renderTasks();
-
+    renderAll();
 }
 
 
-/* =========================================================
-   TASK DISPLAY
-   ========================================================= */
+// --------------------------------
+// TASK DISPLAY
+// --------------------------------
 
 function renderTasks() {
 
@@ -1034,85 +794,93 @@ function renderTasks() {
         );
 
 
-    const taskHTML = activeTasks.length
+    const taskHTML =
+        activeTasks.length
 
-        ? activeTasks
-            .map(task => `
+            ? activeTasks
+                .map(task => `
 
-                <div class="task-card">
+                    <div class="task-card">
 
-                    <div class="task-status">
+                        <div class="task-status">
 
-                        <span class="status-dot"></span>
+                            <span
+                                class="status-dot"
+                            ></span>
 
-                    </div>
-
-
-                    <div class="task-info">
-
-                        <strong>
-                            ${escapeHTML(
-                                task.objective
-                            )}
-                        </strong>
-
-                        <span>
-                            Agent:
-                            ${escapeHTML(
-                                task.agentName
-                            )}
-                        </span>
+                        </div>
 
 
-                        <div class="task-progress">
+                        <div class="task-info">
+
+                            <strong>
+                                ${escapeHTML(
+                                    task.objective
+                                )}
+                            </strong>
+
+                            <span>
+                                Agent:
+                                ${escapeHTML(
+                                    task.agentName
+                                )}
+                            </span>
+
 
                             <div
-                                class="task-progress-bar"
-                                style="width: ${task.progress}%"
-                            ></div>
+                                class="task-progress"
+                            >
+
+                                <div
+                                    class="task-progress-bar"
+                                    style="
+                                        width:
+                                        ${task.progress}%
+                                    "
+                                ></div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="task-state">
+
+                            ${task.progress}%
 
                         </div>
 
                     </div>
 
+                `)
+                .join("")
 
-                    <div class="task-state">
+            : `
 
-                        ${task.progress}%
+                <div class="empty-state compact">
 
+                    <div class="empty-icon">
+                        ✓
                     </div>
 
+                    <strong>
+                        No active tasks
+                    </strong>
+
+                    <span>
+                        Tasks will appear here
+                        when Nexus is working.
+                    </span>
+
                 </div>
 
-            `)
-            .join("")
-
-        : `
-
-            <div class="empty-state compact">
-
-                <div class="empty-icon">
-                    ✓
-                </div>
-
-                <strong>
-                    No active tasks
-                </strong>
-
-                <span>
-                    Tasks will appear here when Nexus is working.
-                </span>
-
-            </div>
-
-        `;
+            `;
 
 
     if (dashboardContainer) {
 
         dashboardContainer.innerHTML =
             taskHTML;
-
     }
 
 
@@ -1120,39 +888,43 @@ function renderTasks() {
 
         fullContainer.innerHTML =
             taskHTML;
-
     }
 }
 
-    if (!container) return;
 
+// --------------------------------
+// ACTIVITY DISPLAY
+// --------------------------------
 
-    const activeTasks =
-        state.tasks.filter(
-            task =>
-                task.status ===
-                    "queued" ||
-                task.status ===
-                    "running"
+function renderActivity() {
+
+    const container =
+        document.getElementById(
+            "activityContainer"
         );
 
 
-    if (!activeTasks.length) {
+    if (!container) {
+        return;
+    }
+
+
+    if (!state.activity.length) {
 
         container.innerHTML = `
 
             <div class="empty-state compact">
 
                 <div class="empty-icon">
-                    ✓
+                    •
                 </div>
 
                 <strong>
-                    No active tasks
+                    No activity yet
                 </strong>
 
                 <span>
-                    Tasks will appear here when Nexus is working.
+                    Nexus activity will appear here.
                 </span>
 
             </div>
@@ -1164,53 +936,28 @@ function renderTasks() {
 
 
     container.innerHTML =
-        activeTasks
-            .map(task => `
+        state.activity
+            .slice(0, 10)
+            .map(item => `
 
-                <div class="task-card">
+                <div class="activity-item">
 
-                    <div class="task-status">
+                    <span class="activity-dot">
+                    </span>
 
-                        <span class="status-dot"></span>
-
-                    </div>
-
-
-                    <div class="task-info">
+                    <div>
 
                         <strong>
                             ${escapeHTML(
-                                task.objective
+                                item.message
                             )}
                         </strong>
 
                         <span>
-
-                            Agent:
-                            ${escapeHTML(
-                                task.agentName
-                            )}
-
+                            ${new Date(
+                                item.timestamp
+                            ).toLocaleString()}
                         </span>
-
-
-                        <div class="task-progress">
-
-                            <div
-                                class="task-progress-bar"
-                                style="
-                                    width: ${task.progress}%;
-                                "
-                            ></div>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="task-state">
-
-                        ${task.progress}%
 
                     </div>
 
@@ -1221,74 +968,11 @@ function renderTasks() {
 }
 
 
-/* =========================================================
-   PROJECTS
-   ========================================================= */
+// --------------------------------
+// DASHBOARD COMMAND
+// --------------------------------
 
-function newProject() {
-
-    const name =
-        prompt(
-            "Enter a project name:"
-        );
-
-
-    if (!name) return;
-
-
-    const project = {
-
-        id: createId("project"),
-
-        name:
-            name.trim(),
-
-        description:
-            "Nexus workspace",
-
-        createdAt:
-            Date.now()
-
-    };
-
-
-    state.projects.push(
-        project
-    );
-
-
-    saveState();
-
-
-    addActivity(
-        `Project created: ${project.name}`
-    );
-
-
-    showView(
-        "projectsView"
-    );
-}
-
-
-function renderProjects() {
-    /*
-       Full project system comes
-       in a later phase.
-    */
-}
-
-
-/* =========================================================
-   QUICK ACTIONS
-   ========================================================= */
-
-function newTask() {
-
-    showView(
-        "dashboardView"
-    );
-
+function executeCommand() {
 
     const input =
         document.getElementById(
@@ -1296,44 +980,79 @@ function newTask() {
         );
 
 
-    if (input) {
+    if (!input) {
+        return;
+    }
 
-        setTimeout(
-            () => input.focus(),
-            100
+
+    const objective =
+        input.value.trim();
+
+
+    if (!objective) {
+
+        alert(
+            "Enter an objective for Nexus."
         );
 
+        return;
+    }
+
+
+    input.value = "";
+
+    createTask(objective);
+}
+
+
+// --------------------------------
+// QUICK ACTIONS
+// --------------------------------
+
+function handleQuickAction(action) {
+
+    switch (action) {
+
+        case "agent":
+
+            openAgentModal();
+
+            break;
+
+
+        case "project":
+
+            showView("projectsView");
+
+            break;
+
+
+        case "task":
+
+            showView("tasksView");
+
+            break;
+
+
+        case "chat":
+
+            alert(
+                "Chat engine will be connected in a later phase."
+            );
+
+            break;
+
+
+        default:
+
+            break;
     }
 }
 
 
-function openChat() {
-
-    showView(
-        "dashboardView"
-    );
-
-
-    const input =
-        document.getElementById(
-            "commandInput"
-        );
-
-
-    if (input) {
-
-        setTimeout(
-            () => input.focus(),
-            100
-        );
-
-    }
-}
-
-
-/* =========================================================
-   RENDER EVERYTHING
-   ========================================================= */
+// --------------------------------
+// RENDER EVERYTHING
+// --------------------------------
 
 function renderAll() {
 
@@ -1341,286 +1060,203 @@ function renderAll() {
 
     renderTasks();
 
-    renderProjects();
-
     renderActivity();
-
 }
 
 
-/* =========================================================
-   EVENT WIRING
-   ========================================================= */
+// --------------------------------
+// EVENT LISTENERS
+// --------------------------------
+
+function initializeEvents() {
+
+
+    // Navigation
+
+    document
+        .querySelectorAll(".nav-item")
+        .forEach(item => {
+
+            item.addEventListener(
+                "click",
+                () => {
+
+                    const view =
+                        item.dataset.view;
+
+                    if (view) {
+                        showView(view);
+                    }
+
+                }
+            );
+
+        });
+
+
+    // Execute command
+
+    const executeButton =
+        document.getElementById(
+            "executeCommand"
+        );
+
+
+    if (executeButton) {
+
+        executeButton.addEventListener(
+            "click",
+            executeCommand
+        );
+
+    }
+
+
+    // Command keyboard shortcut
+
+    const commandInput =
+        document.getElementById(
+            "commandInput"
+        );
+
+
+    if (commandInput) {
+
+        commandInput.addEventListener(
+            "keydown",
+            event => {
+
+                if (
+                    event.key === "Enter" &&
+                    !event.shiftKey
+                ) {
+
+                    event.preventDefault();
+
+                    executeCommand();
+
+                }
+
+            }
+        );
+
+    }
+
+
+    // Quick actions
+
+    document
+        .querySelectorAll(".action-card")
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    handleQuickAction(
+                        button.dataset.action
+                    );
+
+                }
+            );
+
+        });
+
+
+    // Create agent
+
+    const createAgentButton =
+        document.getElementById(
+            "createAgentButton"
+        );
+
+
+    if (createAgentButton) {
+
+        createAgentButton.addEventListener(
+            "click",
+            openAgentModal
+        );
+
+    }
+
+
+    // Close modal
+
+    const closeAgentButton =
+        document.getElementById(
+            "closeAgentModal"
+        );
+
+
+    if (closeAgentButton) {
+
+        closeAgentButton.addEventListener(
+            "click",
+            closeAgentModal
+        );
+
+    }
+
+
+    // Save agent
+
+    const saveAgentButton =
+        document.getElementById(
+            "saveAgent"
+        );
+
+
+    if (saveAgentButton) {
+
+        saveAgentButton.addEventListener(
+            "click",
+            saveAgent
+        );
+
+    }
+
+
+    // Close modal when clicking background
+
+    const modal =
+        document.getElementById(
+            "agentModal"
+        );
+
+
+    if (modal) {
+
+        modal.addEventListener(
+            "click",
+            event => {
+
+                if (
+                    event.target === modal
+                ) {
+
+                    closeAgentModal();
+
+                }
+
+            }
+        );
+
+    }
+}
+
+
+// --------------------------------
+// START NEXUS
+// --------------------------------
 
 document.addEventListener(
     "DOMContentLoaded",
     () => {
 
-
-        /* Navigation */
-
-        document
-            .querySelectorAll(
-                ".nav-item"
-            )
-            .forEach(button => {
-
-                button.addEventListener(
-                    "click",
-                    () => {
-
-                        showView(
-                            button.dataset.view
-                        );
-
-                    }
-                );
-
-            });
-
-
-        /* Quick Actions */
-
-        document
-            .querySelectorAll(
-                ".action-card"
-            )
-            .forEach(button => {
-
-                button.addEventListener(
-                    "click",
-                    () => {
-
-                        const action =
-                            button.dataset.action;
-
-
-                        if (
-                            action ===
-                            "agent"
-                        ) {
-
-                            openAgentModal();
-
-                        }
-
-
-                        if (
-                            action ===
-                            "project"
-                        ) {
-
-                            newProject();
-
-                        }
-
-
-                        if (
-                            action ===
-                            "task"
-                        ) {
-
-                            newTask();
-
-                        }
-
-
-                        if (
-                            action ===
-                            "chat"
-                        ) {
-
-                            openChat();
-
-                        }
-
-                    }
-                );
-
-            });
-
-
-        /* Create Agent */
-
-        const createAgentButton =
-            document.getElementById(
-                "createAgentButton"
-            );
-
-
-        if (createAgentButton) {
-
-            createAgentButton.addEventListener(
-                "click",
-                openAgentModal
-            );
-
-        }
-
-
-        /* Save Agent */
-
-        const saveAgent =
-            document.getElementById(
-                "saveAgent"
-            );
-
-
-        if (saveAgent) {
-
-            saveAgent.addEventListener(
-                "click",
-                createAgent
-            );
-
-        }
-
-
-        /* Close Agent */
-
-        const closeAgentModalButton =
-            document.getElementById(
-                "closeAgentModal"
-            );
-
-
-        if (
-            closeAgentModalButton
-        ) {
-
-            closeAgentModalButton.addEventListener(
-                "click",
-                closeAgentModal
-            );
-
-        }
-
-
-        /* Modal background */
-
-        const modal =
-            document.getElementById(
-                "agentModal"
-            );
-
-
-        if (modal) {
-
-            modal.addEventListener(
-                "click",
-                event => {
-
-                    if (
-                        event.target ===
-                        modal
-                    ) {
-
-                        closeAgentModal();
-
-                    }
-
-                }
-            );
-
-        }
-
-
-        /* Execute */
-
-        const executeButton =
-            document.getElementById(
-                "executeCommand"
-            );
-
-
-        if (executeButton) {
-
-            executeButton.addEventListener(
-                "click",
-                executeCommand
-            );
-
-        }
-
-
-        /* Enter = Execute */
-
-        const commandInput =
-            document.getElementById(
-                "commandInput"
-            );
-
-
-        if (commandInput) {
-
-            commandInput.addEventListener(
-                "keydown",
-                event => {
-
-                    if (
-                        event.key ===
-                            "Enter" &&
-                        !event.shiftKey
-                    ) {
-
-                        event.preventDefault();
-
-                        executeCommand();
-
-                    }
-
-                }
-            );
-
-        }
-
-
-        /* Initial render */
+        initializeEvents();
 
         renderAll();
 
-
-        console.log(
-            "Nexus Phase 2 initialized."
-        );
-
     }
 );
-
-
-/* =========================================================
-   SERVICE WORKER
-   ========================================================= */
-
-if (
-    "serviceWorker" in navigator
-) {
-
-    window.addEventListener(
-        "load",
-        () => {
-
-            navigator.serviceWorker
-                .register(
-                    "./service-worker.js"
-                )
-                .then(() => {
-
-                    console.log(
-                        "Nexus service worker registered."
-                    );
-
-                })
-                .catch(error => {
-
-                    console.error(
-                        "Service worker registration failed:",
-                        error
-                    );
-
-                });
-
-        }
-    );
-
-}
