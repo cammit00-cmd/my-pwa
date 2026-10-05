@@ -785,6 +785,15 @@ function renderTasks() {
             "fullTasksContainer"
         );
 
+    const completedContainer =
+        document.getElementById(
+            "completedTasksContainer"
+        );
+
+
+    // --------------------------------
+    // RUNNING TASKS
+    // --------------------------------
 
     const activeTasks =
         state.tasks.filter(
@@ -794,7 +803,7 @@ function renderTasks() {
         );
 
 
-    const taskHTML =
+    const activeHTML =
         activeTasks.length
 
             ? activeTasks
@@ -877,18 +886,123 @@ function renderTasks() {
             `;
 
 
+    // --------------------------------
+    // COMPLETED TASKS
+    // --------------------------------
+
+    const completedTasks =
+        state.tasks.filter(
+            task =>
+                task.status === "completed"
+        );
+
+
+    const completedHTML =
+        completedTasks.length
+
+            ? completedTasks
+                .map(task => `
+
+                    <div class="task-card">
+
+                        <div class="task-status">
+
+                            <span
+                                class="status-dot"
+                            ></span>
+
+                        </div>
+
+
+                        <div class="task-info">
+
+                            <strong>
+                                ${escapeHTML(
+                                    task.objective
+                                )}
+                            </strong>
+
+                            <span>
+                                Agent:
+                                ${escapeHTML(
+                                    task.agentName
+                                )}
+                            </span>
+
+                            <span>
+                                Completed:
+                                ${new Date(
+                                    task.completedAt
+                                ).toLocaleString()}
+                            </span>
+
+                        </div>
+
+
+                        <div class="task-state">
+
+                            ✓ 100%
+
+                        </div>
+
+                    </div>
+
+                `)
+                .join("")
+
+            : `
+
+                <div class="empty-state compact">
+
+                    <div class="empty-icon">
+                        ✓
+                    </div>
+
+                    <strong>
+                        No completed tasks
+                    </strong>
+
+                    <span>
+                        Completed objectives
+                        will appear here.
+                    </span>
+
+                </div>
+
+            `;
+
+
+    // --------------------------------
+    // UPDATE DASHBOARD
+    // --------------------------------
+
     if (dashboardContainer) {
 
         dashboardContainer.innerHTML =
-            taskHTML;
+            activeHTML;
+
     }
 
+
+    // --------------------------------
+    // UPDATE TASK PAGE
+    // --------------------------------
 
     if (fullContainer) {
 
         fullContainer.innerHTML =
-            taskHTML;
+            activeHTML;
+
     }
+
+
+    if (completedContainer) {
+
+        completedContainer.innerHTML =
+            completedHTML;
+
+    }
+
 }
 
 
