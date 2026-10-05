@@ -221,6 +221,182 @@ function showView(viewId) {
     renderAll();
 }
 
+/* ================================
+   MODELS
+   ================================ */
+
+function renderModels() {
+
+    const container =
+        document.getElementById(
+            "modelsContainer"
+        );
+
+    const activeName =
+        document.getElementById(
+            "activeModelName"
+        );
+
+    const activeType =
+        document.getElementById(
+            "activeModelType"
+        );
+
+    if (!container) {
+        return;
+    }
+
+
+    const activeModel =
+        state.models.find(
+            model =>
+                model.id ===
+                state.activeModelId
+        );
+
+
+    if (activeName) {
+
+        activeName.textContent =
+            activeModel
+                ? activeModel.name
+                : "No model selected";
+
+    }
+
+
+    if (activeType) {
+
+        activeType.textContent =
+            activeModel
+                ? `${activeModel.provider} • ${activeModel.type}`
+                : "Nexus is waiting for an AI model.";
+
+    }
+
+
+    if (!state.models.length) {
+
+        container.innerHTML = `
+
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    AI
+                </div>
+
+                <strong>
+                    No models configured
+                </strong>
+
+                <span>
+                    Add a model to begin using Nexus AI.
+                </span>
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        state.models
+            .map(model => `
+
+                <div
+                    class="model-card"
+                    data-model-id="${escapeHTML(model.id)}"
+                >
+
+                    <div class="model-icon">
+                        AI
+                    </div>
+
+                    <div class="model-info">
+
+                        <strong>
+                            ${escapeHTML(model.name)}
+                        </strong>
+
+                        <span>
+                            ${escapeHTML(model.description)}
+                        </span>
+
+                        <span>
+                            ${escapeHTML(model.provider)}
+                            •
+                            ${escapeHTML(model.type)}
+                        </span>
+
+                    </div>
+
+                    <div class="model-status">
+
+                        ${
+                            model.id ===
+                            state.activeModelId
+                                ? "Active"
+                                : "Available"
+                        }
+
+                    </div>
+
+                </div>
+
+            `)
+            .join("");
+
+
+    container
+        .querySelectorAll(
+            ".model-card[data-model-id]"
+        )
+        .forEach(card => {
+
+            card.addEventListener(
+                "click",
+                () => {
+
+                    selectModel(
+                        card.dataset.modelId
+                    );
+
+                }
+            );
+
+        });
+}
+
+
+function selectModel(modelId) {
+
+    const model =
+        state.models.find(
+            item =>
+                item.id === modelId
+        );
+
+    if (!model) {
+        return;
+    }
+
+
+    state.activeModelId =
+        model.id;
+
+
+    saveState();
+
+
+    addActivity(
+        `Selected AI model: ${model.name}`
+    );
+
+
+    renderAll();
+}
 
 /* ================================
    AGENTS
