@@ -1714,6 +1714,20 @@ function renderAll() {
 
 function initializeEvents() {
 
+const loadModelButton =
+    document.getElementById(
+        "loadModelButton"
+    );
+
+if (loadModelButton) {
+
+    loadModelButton.addEventListener(
+        "click",
+        loadLocalModel
+    );
+
+}
+
 const testWebGPUButton =
     document.getElementById(
         "testWebGPUButton"
