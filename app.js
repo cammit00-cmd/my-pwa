@@ -466,6 +466,126 @@ function testWebGPU() {
         });
 }
 
+async function loadLocalModel() {
+
+    const status =
+        document.getElementById(
+            "webgpuStatus"
+        );
+
+    const button =
+        document.getElementById(
+            "loadModelButton"
+        );
+
+    if (webLLMLoading) {
+        return;
+    }
+
+    if (!window.webllm) {
+
+        if (status) {
+            status.textContent =
+                "WebLLM could not be loaded.";
+        }
+
+        return;
+    }
+
+    if (!("gpu" in navigator)) {
+
+        if (status) {
+            status.textContent =
+                "WebGPU is not available.";
+        }
+
+        return;
+    }
+
+    webLLMLoading = true;
+
+    if (button) {
+        button.disabled = true;
+        button.textContent =
+            "Loading...";
+    }
+
+    if (status) {
+        status.textContent =
+            "Starting local AI runtime...";
+    }
+
+    try {
+
+        const modelId =
+            "Llama-3.2-1B-Instruct-q4f16_1-MLC";
+
+        webLLMEngine =
+            await webllm.CreateMLCEngine(
+                modelId,
+                {
+                    initProgressCallback:
+                        progress => {
+
+                            if (status) {
+
+                                status.textContent =
+                                    progress.text ||
+                                    "Loading local model...";
+
+                            }
+                        }
+                }
+            );
+
+
+        if (status) {
+
+            status.textContent =
+                "Local AI model is ready.";
+
+        }
+
+        if (button) {
+
+            button.textContent =
+                "Model Ready";
+
+        }
+
+        addActivity(
+            "Loaded local AI model."
+        );
+
+    } catch (error) {
+
+        console.error(
+            "WebLLM error:",
+            error
+        );
+
+        if (status) {
+
+            status.textContent =
+                `Model loading failed: ${error.message}`;
+
+        }
+
+        if (button) {
+
+            button.disabled = false;
+            button.textContent =
+                "Load Model";
+
+        }
+
+    } finally {
+
+        webLLMLoading = false;
+
+    }
+}
+
 async function testActiveModel() {
 
     const input =
