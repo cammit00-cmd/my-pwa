@@ -1036,6 +1036,295 @@ function renderTasks() {
 
 }
 
+// =================================
+// TASK DETAILS
+// =================================
+
+function openTaskDetails(taskId) {
+
+    const task =
+        state.tasks.find(
+            item => item.id === taskId
+        );
+
+
+    if (!task) {
+        return;
+    }
+
+
+    const modal =
+        document.getElementById(
+            "taskDetailsModal"
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    const objective =
+        document.getElementById(
+            "taskDetailsObjective"
+        );
+
+    const agent =
+        document.getElementById(
+            "taskDetailsAgent"
+        );
+
+    const status =
+        document.getElementById(
+            "taskDetailsState"
+        );
+
+    const statusText =
+        document.getElementById(
+            "taskDetailsStatus"
+        );
+
+    const steps =
+        document.getElementById(
+            "taskDetailsSteps"
+        );
+
+    const output =
+        document.getElementById(
+            "taskDetailsOutput"
+        );
+
+    const created =
+        document.getElementById(
+            "taskDetailsCreated"
+        );
+
+    const completed =
+        document.getElementById(
+            "taskDetailsCompleted"
+        );
+
+
+    if (objective) {
+
+        objective.textContent =
+            task.objective;
+
+    }
+
+
+    if (agent) {
+
+        agent.textContent =
+            task.agentName;
+
+    }
+
+
+    if (status) {
+
+        status.textContent =
+            task.status.toUpperCase();
+
+    }
+
+
+    if (statusText) {
+
+        statusText.textContent =
+            `${task.progress}% complete`;
+
+    }
+
+
+    if (steps) {
+
+        steps.innerHTML =
+            task.steps
+                .map(step => `
+
+                    <div
+                        class="
+                            task-detail-step
+                            ${step.status === "completed"
+                                ? "completed"
+                                : "pending"}
+                        "
+                    >
+
+                        <div
+                            class="task-detail-step-icon"
+                        >
+                            ${
+                                step.status ===
+                                "completed"
+                                    ? "✓"
+                                    : "•"
+                            }
+                        </div>
+
+                        <span>
+                            ${escapeHTML(
+                                step.name
+                            )}
+                        </span>
+
+                    </div>
+
+                `)
+                .join("");
+
+    }
+
+
+    if (output) {
+
+        output.textContent =
+            task.output ||
+            "No output generated yet.";
+
+    }
+
+
+    if (created) {
+
+        created.textContent =
+            task.createdAt
+                ? new Date(
+                    task.createdAt
+                ).toLocaleString()
+                : "—";
+
+    }
+
+
+    if (completed) {
+
+        completed.textContent =
+            task.completedAt
+                ? new Date(
+                    task.completedAt
+                ).toLocaleString()
+                : "—";
+
+    }
+
+
+    modal.classList.remove("hidden");
+
+    modal.classList.add("active");
+
+
+    // Remember which task is open.
+
+    modal.dataset.taskId =
+        task.id;
+}
+
+
+function closeTaskDetails() {
+
+    const modal =
+        document.getElementById(
+            "taskDetailsModal"
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    modal.classList.add("hidden");
+
+    modal.classList.remove("active");
+
+}
+
+
+function retryTask() {
+
+    const modal =
+        document.getElementById(
+            "taskDetailsModal"
+        );
+
+
+    const taskId =
+        modal?.dataset.taskId;
+
+
+    if (!taskId) {
+        return;
+    }
+
+
+    closeTaskDetails();
+
+    startTask(taskId);
+
+}
+
+
+function deleteTask() {
+
+    const modal =
+        document.getElementById(
+            "taskDetailsModal"
+        );
+
+
+    const taskId =
+        modal?.dataset.taskId;
+
+
+    if (!taskId) {
+        return;
+    }
+
+
+    const task =
+        state.tasks.find(
+            item => item.id === taskId
+        );
+
+
+    if (!task) {
+        return;
+    }
+
+
+    const confirmed =
+        confirm(
+            "Delete this task?"
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    state.tasks =
+        state.tasks.filter(
+            item => item.id !== taskId
+        );
+
+
+    saveState();
+
+
+    addActivity(
+        `Deleted task: ${task.objective}`
+    );
+
+
+    closeTaskDetails();
+
+    renderAll();
+
+}
+
     // --------------------------------
     // RUNNING TASKS
     // --------------------------------
