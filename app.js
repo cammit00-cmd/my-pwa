@@ -694,11 +694,47 @@ async function generateAIResponse(prompt) {
 
     if (activeModel.type === "local") {
 
+    if (!webLLMEngine) {
+
         throw new Error(
-            "The local AI runtime has not been connected yet."
+            "Load the local AI model first."
         );
 
     }
+
+
+    const response =
+        await webLLMEngine.chat.completions.create({
+
+            messages: [
+                {
+                    role: "system",
+                    content:
+                        "You are Nexus, a personal AI assistant."
+                },
+                {
+                    role: "user",
+                    content: prompt
+                }
+            ],
+
+            temperature: 0.7,
+
+            max_tokens: 256
+
+        });
+
+
+    return (
+        response
+            ?.choices?.[0]
+            ?.message
+            ?.content
+            ||
+        "The model returned no response."
+    );
+
+}
 
 
     throw new Error(
