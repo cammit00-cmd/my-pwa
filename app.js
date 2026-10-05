@@ -1,9 +1,9 @@
 /* =========================================================
-   NEXUS — Phase 1 Frontend Engine
-   Compatible with current Nexus HTML
+   NEXUS — PHASE 2
+   TASK ENGINE
    ========================================================= */
 
-const STORAGE_KEY = "nexus_state_v1";
+const STORAGE_KEY = "nexus_state_v2";
 
 
 /* =========================================================
@@ -99,7 +99,9 @@ const defaultState = {
     ],
 
     tasks: [],
+
     projects: [],
+
     activity: [],
 
     settings: {
@@ -115,6 +117,7 @@ const defaultState = {
    ========================================================= */
 
 let state = loadState();
+
 
 function loadState() {
 
@@ -136,7 +139,7 @@ function loadState() {
     } catch (error) {
 
         console.error(
-            "Nexus state could not be loaded:",
+            "Nexus state loading failed:",
             error
         );
 
@@ -160,7 +163,7 @@ function saveState() {
     } catch (error) {
 
         console.error(
-            "Nexus state could not be saved:",
+            "Nexus state saving failed:",
             error
         );
 
@@ -181,7 +184,7 @@ function createId(prefix) {
         "_" +
         Math.random()
             .toString(36)
-            .substring(2, 8)
+            .substring(2, 9)
     );
 }
 
@@ -215,7 +218,7 @@ function formatTime(timestamp) {
 
 
 /* =========================================================
-   ACTIVITY
+   ACTIVITY ENGINE
    ========================================================= */
 
 function addActivity(message) {
@@ -224,14 +227,16 @@ function addActivity(message) {
 
         id: createId("activity"),
 
-        message: message,
+        message,
 
         timestamp: Date.now()
 
     });
 
+
     state.activity =
-        state.activity.slice(0, 50);
+        state.activity.slice(0, 100);
+
 
     saveState();
 
@@ -246,14 +251,19 @@ function renderActivity() {
             "activityContainer"
         );
 
+
     if (!container) return;
 
 
     if (!state.activity.length) {
 
         container.innerHTML = `
+
             <div class="empty-state compact">
-                <div class="empty-icon">◌</div>
+
+                <div class="empty-icon">
+                    ◌
+                </div>
 
                 <strong>
                     No recent activity
@@ -262,7 +272,9 @@ function renderActivity() {
                 <span>
                     Nexus activity will appear here.
                 </span>
+
             </div>
+
         `;
 
         return;
@@ -271,7 +283,7 @@ function renderActivity() {
 
     container.innerHTML =
         state.activity
-            .slice(0, 10)
+            .slice(0, 15)
             .map(item => `
 
                 <div class="activity-item">
@@ -281,7 +293,9 @@ function renderActivity() {
                     <div class="activity-content">
 
                         <strong>
-                            ${escapeHTML(item.message)}
+                            ${escapeHTML(
+                                item.message
+                            )}
                         </strong>
 
                         <span>
@@ -291,7 +305,9 @@ function renderActivity() {
                     </div>
 
                     <time>
-                        ${formatTime(item.timestamp)}
+                        ${formatTime(
+                            item.timestamp
+                        )}
                     </time>
 
                 </div>
@@ -318,6 +334,7 @@ function showView(viewId) {
 
     const target =
         document.getElementById(viewId);
+
 
     if (target) {
 
@@ -359,49 +376,68 @@ function renderAgents() {
         );
 
 
-    if (dashboard) {
+    const agentHTML =
+        state.agents
+            .map(agent => `
 
-        dashboard.innerHTML =
-            state.agents
-                .map(agent => `
+                <div class="agent-card">
 
-                    <div class="agent-card">
+                    <div class="agent-avatar">
 
-                        <div class="agent-avatar">
+                        ${escapeHTML(
+                            agent.name
+                                .charAt(0)
+                                .toUpperCase()
+                        )}
+
+                    </div>
+
+                    <div class="agent-info">
+
+                        <div class="agent-name">
+
                             ${escapeHTML(
                                 agent.name
-                                    .charAt(0)
-                                    .toUpperCase()
                             )}
+
                         </div>
 
-                        <div class="agent-info">
+                        <div class="agent-description">
 
-                            <div class="agent-name">
-                                ${escapeHTML(agent.name)}
-                            </div>
+                            ${escapeHTML(
+                                agent.description
+                            )}
 
-                            <div class="agent-description">
+                        </div>
+
+                        <div class="agent-meta">
+
+                            <span>
+                                LOCAL
+                            </span>
+
+                            <span>
+
                                 ${escapeHTML(
-                                    agent.description
+                                    agent.personality
                                 )}
-                            </div>
 
-                            <div class="agent-meta">
-                                <span>LOCAL</span>
-                                <span>
-                                    ${escapeHTML(
-                                        agent.personality
-                                    )}
-                                </span>
-                            </div>
+                            </span>
 
                         </div>
 
                     </div>
 
-                `)
-                .join("");
+                </div>
+
+            `)
+            .join("");
+
+
+    if (dashboard) {
+
+        dashboard.innerHTML =
+            agentHTML;
 
     }
 
@@ -409,51 +445,7 @@ function renderAgents() {
     if (full) {
 
         full.innerHTML =
-            state.agents
-                .map(agent => `
-
-                    <div class="agent-card">
-
-                        <div class="agent-avatar">
-                            ${escapeHTML(
-                                agent.name
-                                    .charAt(0)
-                                    .toUpperCase()
-                            )}
-                        </div>
-
-                        <div class="agent-info">
-
-                            <div class="agent-name">
-                                ${escapeHTML(agent.name)}
-                            </div>
-
-                            <div class="agent-description">
-                                ${escapeHTML(
-                                    agent.description
-                                )}
-                            </div>
-
-                            <div class="agent-meta">
-
-                                <span>
-                                    LOCAL
-                                </span>
-
-                                <span>
-                                    ${escapeHTML(
-                                        agent.personality
-                                    )}
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                `)
-                .join("");
+            agentHTML;
 
     }
 }
@@ -470,31 +462,27 @@ function openAgentModal() {
             "agentModal"
         );
 
-    if (!modal) {
 
-        console.error(
-            "Nexus: agentModal not found."
-        );
-
-        return;
-    }
+    if (!modal) return;
 
 
-    modal.classList.remove("hidden");
+    modal.classList.remove(
+        "hidden"
+    );
 
 
-    const nameInput =
+    const name =
         document.getElementById(
             "agentName"
         );
 
-    if (nameInput) {
 
-        setTimeout(() => {
+    if (name) {
 
-            nameInput.focus();
-
-        }, 100);
+        setTimeout(
+            () => name.focus(),
+            100
+        );
 
     }
 }
@@ -507,25 +495,24 @@ function closeAgentModal() {
             "agentModal"
         );
 
+
     if (!modal) return;
 
-    modal.classList.add("hidden");
+
+    modal.classList.add(
+        "hidden"
+    );
 }
 
 
 function clearAgentForm() {
 
-    const fields = [
-
+    [
         "agentName",
         "agentDescription",
         "agentInstructions",
         "agentPersonality"
-
-    ];
-
-
-    fields.forEach(id => {
+    ].forEach(id => {
 
         const element =
             document.getElementById(id);
@@ -555,7 +542,6 @@ function clearAgentForm() {
         }
 
     });
-
 }
 
 
@@ -563,7 +549,9 @@ function createAgent() {
 
     const name =
         document
-            .getElementById("agentName")
+            .getElementById(
+                "agentName"
+            )
             ?.value
             .trim();
 
@@ -571,7 +559,7 @@ function createAgent() {
     if (!name) {
 
         alert(
-            "Please enter a name for your agent."
+            "Please enter an agent name."
         );
 
         return;
@@ -579,43 +567,37 @@ function createAgent() {
     }
 
 
-    const description =
-        document
-            .getElementById("agentDescription")
-            ?.value
-            .trim();
-
-
-    const instructions =
-        document
-            .getElementById("agentInstructions")
-            ?.value
-            .trim();
-
-
-    const personality =
-        document
-            .getElementById("agentPersonality")
-            ?.value
-            .trim();
-
-
     const agent = {
 
         id: createId("agent"),
 
-        name: name,
+        name,
 
         description:
-            description ||
+            document
+                .getElementById(
+                    "agentDescription"
+                )
+                ?.value
+                .trim() ||
             "Custom Nexus AI worker",
 
         instructions:
-            instructions ||
+            document
+                .getElementById(
+                    "agentInstructions"
+                )
+                ?.value
+                .trim() ||
             "Assist the user according to the assigned objective.",
 
         personality:
-            personality ||
+            document
+                .getElementById(
+                    "agentPersonality"
+                )
+                ?.value
+                .trim() ||
             "Professional, helpful, adaptable",
 
         permissions: {
@@ -663,12 +645,11 @@ function createAgent() {
     closeAgentModal();
 
     renderAgents();
-
 }
 
 
 /* =========================================================
-   TASK SYSTEM
+   TASK CREATION
    ========================================================= */
 
 function executeCommand() {
@@ -695,6 +676,15 @@ function executeCommand() {
     }
 
 
+    createTask(objective);
+
+    input.value = "";
+
+}
+
+
+function createTask(objective) {
+
     const manager =
         state.agents.find(
             agent =>
@@ -707,15 +697,69 @@ function executeCommand() {
 
         id: createId("task"),
 
-        objective: objective,
+        objective,
 
-        agentId: manager.id,
+        agentId:
+            manager.id,
 
-        agentName: manager.name,
+        agentName:
+            manager.name,
 
         status: "queued",
 
-        createdAt: Date.now()
+        progress: 0,
+
+        createdAt: Date.now(),
+
+        startedAt: null,
+
+        completedAt: null,
+
+        cancelledAt: null,
+
+        steps: [
+
+            {
+                id: createId("step"),
+
+                name:
+                    "Understand objective",
+
+                status: "pending"
+
+            },
+
+            {
+                id: createId("step"),
+
+                name:
+                    "Create execution plan",
+
+                status: "pending"
+
+            },
+
+            {
+                id: createId("step"),
+
+                name:
+                    "Execute work",
+
+                status: "pending"
+
+            },
+
+            {
+                id: createId("step"),
+
+                name:
+                    "Evaluate result",
+
+                status: "pending"
+
+            }
+
+        ]
 
     };
 
@@ -726,11 +770,8 @@ function executeCommand() {
 
 
     addActivity(
-        `New task created: ${objective}`
+        `Task created: ${objective}`
     );
-
-
-    input.value = "";
 
 
     renderTasks();
@@ -738,8 +779,239 @@ function executeCommand() {
 
     showView("tasksView");
 
+
+    /*
+       Start the Phase 2 simulation.
+
+       This gives us the task lifecycle
+       before connecting a real AI model.
+    */
+
+    startTask(task.id);
 }
 
+
+/* =========================================================
+   TASK EXECUTION ENGINE
+   ========================================================= */
+
+function startTask(taskId) {
+
+    const task =
+        state.tasks.find(
+            item =>
+                item.id === taskId
+        );
+
+
+    if (!task) return;
+
+
+    task.status =
+        "running";
+
+    task.startedAt =
+        Date.now();
+
+    task.progress =
+        10;
+
+    task.steps[0].status =
+        "complete";
+
+
+    saveState();
+
+
+    addActivity(
+        `Task started: ${task.objective}`
+    );
+
+
+    renderTasks();
+
+
+    /*
+       Simulated execution stages.
+
+       These will eventually be replaced
+       by real agent/model execution.
+    */
+
+    setTimeout(
+        () => advanceTask(
+            taskId,
+            1,
+            35
+        ),
+        1000
+    );
+
+}
+
+
+function advanceTask(
+    taskId,
+    stepIndex,
+    progress
+) {
+
+    const task =
+        state.tasks.find(
+            item =>
+                item.id === taskId
+        );
+
+
+    if (!task) return;
+
+
+    if (
+        task.status ===
+            "cancelled" ||
+        task.status ===
+            "completed"
+    ) {
+
+        return;
+
+    }
+
+
+    task.steps[stepIndex].status =
+        "complete";
+
+
+    task.progress =
+        progress;
+
+
+    saveState();
+
+
+    addActivity(
+        `${task.steps[stepIndex].name}: ${task.objective}`
+    );
+
+
+    renderTasks();
+
+
+    if (
+        stepIndex <
+        task.steps.length - 1
+    ) {
+
+        setTimeout(
+            () =>
+                advanceTask(
+                    taskId,
+                    stepIndex + 1,
+                    Math.min(
+                        progress + 25,
+                        90
+                    )
+                ),
+            1200
+        );
+
+        return;
+
+    }
+
+
+    completeTask(taskId);
+}
+
+
+/* =========================================================
+   TASK COMPLETION
+   ========================================================= */
+
+function completeTask(taskId) {
+
+    const task =
+        state.tasks.find(
+            item =>
+                item.id === taskId
+        );
+
+
+    if (!task) return;
+
+
+    task.status =
+        "completed";
+
+    task.progress =
+        100;
+
+    task.completedAt =
+        Date.now();
+
+
+    saveState();
+
+
+    addActivity(
+        `Task completed: ${task.objective}`
+    );
+
+
+    renderTasks();
+
+}
+
+
+/* =========================================================
+   TASK CANCELLATION
+   ========================================================= */
+
+function cancelTask(taskId) {
+
+    const task =
+        state.tasks.find(
+            item =>
+                item.id === taskId
+        );
+
+
+    if (!task) return;
+
+
+    if (
+        task.status ===
+        "completed"
+    ) {
+
+        return;
+
+    }
+
+
+    task.status =
+        "cancelled";
+
+    task.cancelledAt =
+        Date.now();
+
+
+    saveState();
+
+
+    addActivity(
+        `Task cancelled: ${task.objective}`
+    );
+
+
+    renderTasks();
+
+}
+
+
+/* =========================================================
+   TASK DISPLAY
+   ========================================================= */
 
 function renderTasks() {
 
@@ -755,8 +1027,10 @@ function renderTasks() {
     const activeTasks =
         state.tasks.filter(
             task =>
-                task.status === "queued" ||
-                task.status === "running"
+                task.status ===
+                    "queued" ||
+                task.status ===
+                    "running"
         );
 
 
@@ -783,7 +1057,6 @@ function renderTasks() {
         `;
 
         return;
-
     }
 
 
@@ -794,8 +1067,11 @@ function renderTasks() {
                 <div class="task-card">
 
                     <div class="task-status">
+
                         <span class="status-dot"></span>
+
                     </div>
+
 
                     <div class="task-info">
 
@@ -806,18 +1082,33 @@ function renderTasks() {
                         </strong>
 
                         <span>
+
                             Agent:
                             ${escapeHTML(
                                 task.agentName
                             )}
+
                         </span>
+
+
+                        <div class="task-progress">
+
+                            <div
+                                class="task-progress-bar"
+                                style="
+                                    width: ${task.progress}%;
+                                "
+                            ></div>
+
+                        </div>
 
                     </div>
 
+
                     <div class="task-state">
-                        ${escapeHTML(
-                            task.status
-                        )}
+
+                        ${task.progress}%
+
                     </div>
 
                 </div>
@@ -834,7 +1125,10 @@ function renderTasks() {
 function newProject() {
 
     const name =
-        prompt("Enter a project name:");
+        prompt(
+            "Enter a project name:"
+        );
+
 
     if (!name) return;
 
@@ -843,17 +1137,22 @@ function newProject() {
 
         id: createId("project"),
 
-        name: name.trim(),
+        name:
+            name.trim(),
 
         description:
             "Nexus workspace",
 
-        createdAt: Date.now()
+        createdAt:
+            Date.now()
 
     };
 
 
-    state.projects.push(project);
+    state.projects.push(
+        project
+    );
+
 
     saveState();
 
@@ -863,17 +1162,17 @@ function newProject() {
     );
 
 
-    showView("projectsView");
-
+    showView(
+        "projectsView"
+    );
 }
 
 
 function renderProjects() {
-
-    /* Projects are intentionally simple
-       in Phase 1. The full project workspace
-       comes later. */
-
+    /*
+       Full project system comes
+       in a later phase.
+    */
 }
 
 
@@ -883,7 +1182,9 @@ function renderProjects() {
 
 function newTask() {
 
-    showView("dashboardView");
+    showView(
+        "dashboardView"
+    );
 
 
     const input =
@@ -894,20 +1195,20 @@ function newTask() {
 
     if (input) {
 
-        setTimeout(() => {
-
-            input.focus();
-
-        }, 100);
+        setTimeout(
+            () => input.focus(),
+            100
+        );
 
     }
-
 }
 
 
 function openChat() {
 
-    showView("dashboardView");
+    showView(
+        "dashboardView"
+    );
 
 
     const input =
@@ -918,19 +1219,17 @@ function openChat() {
 
     if (input) {
 
-        setTimeout(() => {
-
-            input.focus();
-
-        }, 100);
+        setTimeout(
+            () => input.focus(),
+            100
+        );
 
     }
-
 }
 
 
 /* =========================================================
-   RENDER
+   RENDER EVERYTHING
    ========================================================= */
 
 function renderAll() {
@@ -955,9 +1254,7 @@ document.addEventListener(
     () => {
 
 
-        /* -----------------------------------------
-           Navigation
-        ----------------------------------------- */
+        /* Navigation */
 
         document
             .querySelectorAll(
@@ -979,9 +1276,7 @@ document.addEventListener(
             });
 
 
-        /* -----------------------------------------
-           Quick Actions
-        ----------------------------------------- */
+        /* Quick Actions */
 
         document
             .querySelectorAll(
@@ -1042,19 +1337,17 @@ document.addEventListener(
             });
 
 
-        /* -----------------------------------------
-           Create Agent button
-        ----------------------------------------- */
+        /* Create Agent */
 
-        const createButton =
+        const createAgentButton =
             document.getElementById(
                 "createAgentButton"
             );
 
 
-        if (createButton) {
+        if (createAgentButton) {
 
-            createButton.addEventListener(
+            createAgentButton.addEventListener(
                 "click",
                 openAgentModal
             );
@@ -1062,19 +1355,17 @@ document.addEventListener(
         }
 
 
-        /* -----------------------------------------
-           Save Agent
-        ----------------------------------------- */
+        /* Save Agent */
 
-        const saveButton =
+        const saveAgent =
             document.getElementById(
                 "saveAgent"
             );
 
 
-        if (saveButton) {
+        if (saveAgent) {
 
-            saveButton.addEventListener(
+            saveAgent.addEventListener(
                 "click",
                 createAgent
             );
@@ -1082,19 +1373,19 @@ document.addEventListener(
         }
 
 
-        /* -----------------------------------------
-           Close Agent Modal
-        ----------------------------------------- */
+        /* Close Agent */
 
-        const closeButton =
+        const closeAgentModalButton =
             document.getElementById(
                 "closeAgentModal"
             );
 
 
-        if (closeButton) {
+        if (
+            closeAgentModalButton
+        ) {
 
-            closeButton.addEventListener(
+            closeAgentModalButton.addEventListener(
                 "click",
                 closeAgentModal
             );
@@ -1102,9 +1393,7 @@ document.addEventListener(
         }
 
 
-        /* -----------------------------------------
-           Close modal by tapping outside
-        ----------------------------------------- */
+        /* Modal background */
 
         const modal =
             document.getElementById(
@@ -1133,9 +1422,7 @@ document.addEventListener(
         }
 
 
-        /* -----------------------------------------
-           Execute Command
-        ----------------------------------------- */
+        /* Execute */
 
         const executeButton =
             document.getElementById(
@@ -1153,9 +1440,7 @@ document.addEventListener(
         }
 
 
-        /* -----------------------------------------
-           Command keyboard shortcut
-        ----------------------------------------- */
+        /* Enter = Execute */
 
         const commandInput =
             document.getElementById(
@@ -1187,15 +1472,13 @@ document.addEventListener(
         }
 
 
-        /* -----------------------------------------
-           Initial render
-        ----------------------------------------- */
+        /* Initial render */
 
         renderAll();
 
 
         console.log(
-            "Nexus initialized successfully."
+            "Nexus Phase 2 initialized."
         );
 
     }
