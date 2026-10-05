@@ -1,5 +1,8 @@
 const STORAGE_KEY = "nexus_state_v2";
 
+let webLLMEngine = null;
+let webLLMLoading = false;
+
 const DEFAULT_MODELS = [
     {
         id: "local-free",
