@@ -2,6 +2,7 @@ const STORAGE_KEY = "nexus_state_v2";
 
 let webLLMEngine = null;
 let webLLMLoading = false;
+let webLLM = null;
 
 const DEFAULT_MODELS = [
     {
@@ -482,48 +483,57 @@ async function loadLocalModel() {
         return;
     }
 
-    if (!window.webllm) {
-
-        if (status) {
-            status.textContent =
-                "WebLLM could not be loaded.";
-        }
-
-        return;
-    }
-
-    if (!("gpu" in navigator)) {
-
-        if (status) {
-            status.textContent =
-                "WebGPU is not available.";
-        }
-
-        return;
-    }
-
     webLLMLoading = true;
 
     if (button) {
         button.disabled = true;
         button.textContent =
-            "Loading...";
+            "Starting...";
     }
 
     if (status) {
         status.textContent =
-            "Starting local AI runtime...";
+            "Connecting to WebLLM...";
     }
 
     try {
 
+        /*
+         * Load WebLLM as an ES module.
+         */
+
+        if (!webLLM) {
+
+            webLLM =
+                await import(
+                    "https://esm.run/@mlc-ai/web-llm"
+                );
+
+        }
+
+
+        if (!webLLM) {
+            throw new Error(
+                "WebLLM could not be loaded."
+            );
+        }
+
+
+        if (status) {
+            status.textContent =
+                "WebLLM connected. Starting local model...";
+        }
+
+
         const modelId =
             "Llama-3.2-1B-Instruct-q4f16_1-MLC";
 
+
         webLLMEngine =
-            await webllm.CreateMLCEngine(
+            await webLLM.CreateMLCEngine(
                 modelId,
                 {
+
                     initProgressCallback:
                         progress => {
 
@@ -534,7 +544,9 @@ async function loadLocalModel() {
                                     "Loading local model...";
 
                             }
+
                         }
+
                 }
             );
 
@@ -546,6 +558,7 @@ async function loadLocalModel() {
 
         }
 
+
         if (button) {
 
             button.textContent =
@@ -553,9 +566,11 @@ async function loadLocalModel() {
 
         }
 
+
         addActivity(
             "Loaded local AI model."
         );
+
 
     } catch (error) {
 
@@ -564,6 +579,7 @@ async function loadLocalModel() {
             error
         );
 
+
         if (status) {
 
             status.textContent =
@@ -571,13 +587,16 @@ async function loadLocalModel() {
 
         }
 
+
         if (button) {
 
             button.disabled = false;
+
             button.textContent =
                 "Load Model";
 
         }
+
 
     } finally {
 
