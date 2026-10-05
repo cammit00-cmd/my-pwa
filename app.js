@@ -974,11 +974,53 @@ function retryTask() {
         return;
     }
 
+    const task =
+        state.tasks.find(
+            item => item.id === taskId
+        );
+
+    if (!task) {
+        return;
+    }
+
+
+    /*
+     * Reset the task so it can
+     * actually execute again.
+     */
+
+    task.status = "queued";
+
+    task.progress = 0;
+
+    task.startedAt = null;
+
+    task.completedAt = null;
+
+    task.cancelledAt = null;
+
+    task.output = "";
+
+
+    task.steps.forEach(
+        step => {
+            step.status = "pending";
+        }
+    );
+
+
+    saveState();
+
+    addActivity(
+        `Retried task: ${task.objective}`
+    );
+
     closeTaskDetails();
 
-    startTask(taskId);
-}
+    renderAll();
 
+    startTask(task.id);
+}
 
 function deleteTask() {
 
