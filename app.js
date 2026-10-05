@@ -1734,6 +1734,46 @@ function saveChatHistory() {
     saveState();
 }
 
+function formatChatMessage(text) {
+    if (!text) return "";
+
+    let html = escapeHTML(text);
+
+    // Code blocks
+    html = html.replace(
+        /```(\w+)?\n?([\s\S]*?)```/g,
+        (match, language, code) => {
+            return `
+                <pre class="code-block">
+                    <code>${code.trim()}</code>
+                </pre>
+            `;
+        }
+    );
+
+    // Inline code
+    html = html.replace(
+        /`([^`]+)`/g,
+        "<code class=\"inline-code\">$1</code>"
+    );
+
+    // Bold
+    html = html.replace(
+        /\*\*(.*?)\*\*/g,
+        "<strong>$1</strong>"
+    );
+
+    // Italic
+    html = html.replace(
+        /\*(.*?)\*/g,
+        "<em>$1</em>"
+    );
+
+    // Line breaks
+    html = html.replace(/\n/g, "<br>");
+
+    return html;
+}
 
 function renderChat() {
     const container = document.getElementById("chatMessages");
