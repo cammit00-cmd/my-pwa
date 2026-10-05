@@ -1891,6 +1891,78 @@ function initializeEvents() {
         );
 
     }
+    
+        // Task details modal
+
+    const closeTaskDetailsButton =
+        document.getElementById(
+            "closeTaskDetails"
+        );
+
+    if (closeTaskDetailsButton) {
+
+        closeTaskDetailsButton.addEventListener(
+            "click",
+            closeTaskDetails
+        );
+
+    }
+
+
+    const retryTaskButton =
+        document.getElementById(
+            "retryTaskButton"
+        );
+
+    if (retryTaskButton) {
+
+        retryTaskButton.addEventListener(
+            "click",
+            retryTask
+        );
+
+    }
+
+
+    const deleteTaskButton =
+        document.getElementById(
+            "deleteTaskButton"
+        );
+
+    if (deleteTaskButton) {
+
+        deleteTaskButton.addEventListener(
+            "click",
+            deleteTask
+        );
+
+    }
+
+
+    const taskDetailsModal =
+        document.getElementById(
+            "taskDetailsModal"
+        );
+
+    if (taskDetailsModal) {
+
+        taskDetailsModal.addEventListener(
+            "click",
+            event => {
+
+                if (
+                    event.target ===
+                    taskDetailsModal
+                ) {
+
+                    closeTaskDetails();
+
+                }
+
+            }
+        );
+
+    }
 }
 
 
