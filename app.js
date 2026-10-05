@@ -98,6 +98,13 @@ function loadState() {
             ...defaultState,
             ...parsed,
 
+models: Array.isArray(parsed.models)
+    ? parsed.models
+    : DEFAULT_MODELS,
+
+activeModelId:
+    parsed.activeModelId || null,
+    
             agents: Array.isArray(parsed.agents)
                 ? parsed.agents
                 : defaultState.agents,
