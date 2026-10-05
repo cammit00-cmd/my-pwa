@@ -1415,6 +1415,7 @@ function renderAll() {
     renderAgents();
     renderTasks();
     renderActivity();
+    renderModels();
 }
 
 
