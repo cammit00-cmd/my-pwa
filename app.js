@@ -2096,6 +2096,63 @@ function renderAll() {
 
 function initializeEvents() {
 
+const sendChatButton =
+    document.getElementById(
+        "sendChatButton"
+    );
+
+if (sendChatButton) {
+
+    sendChatButton.addEventListener(
+        "click",
+        sendChatMessage
+    );
+
+}
+
+
+const chatInput =
+    document.getElementById(
+        "chatInput"
+    );
+
+if (chatInput) {
+
+    chatInput.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key === "Enter" &&
+                !event.shiftKey
+            ) {
+
+                event.preventDefault();
+
+                sendChatMessage();
+
+            }
+
+        }
+    );
+
+}
+
+
+const newChatButton =
+    document.getElementById(
+        "newChatButton"
+    );
+
+if (newChatButton) {
+
+    newChatButton.addEventListener(
+        "click",
+        newChat
+    );
+
+}
+
 const loadModelButton =
     document.getElementById(
         "loadModelButton"
