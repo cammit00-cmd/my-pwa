@@ -2,14 +2,30 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>My App</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
 
-    <meta name="theme-color" content="#111111">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="My App">
+    <meta name="theme-color" content="#090b10">
+
+    <meta
+        name="apple-mobile-web-app-capable"
+        content="yes"
+    >
+
+    <meta
+        name="apple-mobile-web-app-status-bar-style"
+        content="black-translucent"
+    >
+
+    <meta
+        name="apple-mobile-web-app-title"
+        content="Nexus"
+    >
+
+    <title>Nexus</title>
 
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
@@ -17,19 +33,548 @@
 
 <body>
 
-    <div class="app">
-        <h1>My App</h1>
+<div id="app">
 
-        <p>Your personal app starts here.</p>
+    <!-- TOP BAR -->
+    <header class="topbar">
 
-        <button onclick="testButton()">
-            Test Button
+        <button
+            class="icon-button"
+            id="menuButton"
+            aria-label="Open menu"
+        >
+            ☰
         </button>
 
-        <p id="output"></p>
+        <div class="brand">
+            <div class="brand-mark">N</div>
+
+            <div>
+                <div class="brand-name">NEXUS</div>
+                <div class="brand-subtitle">
+                    AI COMMAND CENTER
+                </div>
+            </div>
+        </div>
+
+        <div class="connection-status">
+            <span class="status-dot"></span>
+            <span>LOCAL</span>
+        </div>
+
+    </header>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- DASHBOARD -->
+        <section id="dashboardView" class="view active">
+
+            <div class="welcome">
+
+                <div>
+                    <div class="eyebrow">
+                        PERSONAL AI WORKSTATION
+                    </div>
+
+                    <h1>
+                        What do you want
+                        <span>Nexus</span>
+                        to accomplish?
+                    </h1>
+
+                    <p>
+                        Create agents, launch tasks, manage projects,
+                        and coordinate your AI workspace.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <!-- COMMAND BOX -->
+            <div class="command-card">
+
+                <textarea
+                    id="commandInput"
+                    placeholder="Give Nexus an objective..."
+                    rows="3"
+                ></textarea>
+
+                <div class="command-footer">
+
+                    <button class="secondary-button">
+                        + Attach
+                    </button>
+
+                    <button
+                        class="primary-button"
+                        id="executeCommand"
+                    >
+                        Execute
+                        <span>➜</span>
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- QUICK ACTIONS -->
+            <div class="section-heading">
+                <h2>Quick Actions</h2>
+            </div>
+
+            <div class="quick-actions">
+
+                <button class="action-card" data-action="agent">
+                    <div class="action-icon">✦</div>
+                    <strong>Create Agent</strong>
+                    <span>Build a specialized AI worker</span>
+                </button>
+
+                <button class="action-card" data-action="project">
+                    <div class="action-icon">▣</div>
+                    <strong>New Project</strong>
+                    <span>Create an isolated workspace</span>
+                </button>
+
+                <button class="action-card" data-action="task">
+                    <div class="action-icon">✓</div>
+                    <strong>New Task</strong>
+                    <span>Give an agent an objective</span>
+                </button>
+
+                <button class="action-card" data-action="chat">
+                    <div class="action-icon">◌</div>
+                    <strong>Chat</strong>
+                    <span>Talk directly with an agent</span>
+                </button>
+
+            </div>
+
+
+            <!-- ACTIVE AGENTS -->
+            <div class="section-heading">
+
+                <h2>Active Agents</h2>
+
+                <button class="text-button">
+                    View All
+                </button>
+
+            </div>
+
+            <div id="agentsContainer" class="agent-grid">
+
+                <div class="empty-state">
+
+                    <div class="empty-icon">✦</div>
+
+                    <strong>
+                        No agents created yet
+                    </strong>
+
+                    <span>
+                        Create your first AI agent to get started.
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- TASKS -->
+            <div class="section-heading">
+
+                <h2>Active Tasks</h2>
+
+                <button class="text-button">
+                    View All
+                </button>
+
+            </div>
+
+            <div id="tasksContainer">
+
+                <div class="empty-state compact">
+
+                    <div class="empty-icon">✓</div>
+
+                    <strong>
+                        No active tasks
+                    </strong>
+
+                    <span>
+                        Tasks will appear here when Nexus is working.
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- ACTIVITY -->
+            <div class="section-heading">
+
+                <h2>Recent Activity</h2>
+
+                <button class="text-button">
+                    View All
+                </button>
+
+            </div>
+
+            <div id="activityContainer">
+
+                <div class="activity-item">
+
+                    <div class="activity-indicator"></div>
+
+                    <div class="activity-content">
+
+                        <strong>
+                            Nexus initialized
+                        </strong>
+
+                        <span>
+                            Command center ready.
+                        </span>
+
+                    </div>
+
+                    <time>
+                        Now
+                    </time>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- AGENTS VIEW -->
+        <section id="agentsView" class="view">
+
+            <div class="page-header">
+
+                <div>
+                    <div class="eyebrow">
+                        AI WORKFORCE
+                    </div>
+
+                    <h1>Agents</h1>
+
+                    <p>
+                        Create and manage your autonomous AI workers.
+                    </p>
+                </div>
+
+                <button
+                    class="primary-button"
+                    id="createAgentButton"
+                >
+                    + Create Agent
+                </button>
+
+            </div>
+
+            <div id="fullAgentsContainer">
+
+                <div class="empty-state">
+
+                    <div class="empty-icon">✦</div>
+
+                    <strong>
+                        Your AI workforce is empty
+                    </strong>
+
+                    <span>
+                        Create an agent to begin building your Nexus workforce.
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- PROJECTS VIEW -->
+        <section id="projectsView" class="view">
+
+            <div class="page-header">
+
+                <div>
+                    <div class="eyebrow">
+                        WORKSPACES
+                    </div>
+
+                    <h1>Projects</h1>
+
+                    <p>
+                        Keep agents, files, tasks, and memory organized.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="empty-state">
+
+                <div class="empty-icon">▣</div>
+
+                <strong>
+                    No projects yet
+                </strong>
+
+                <span>
+                    Your projects will appear here.
+                </span>
+
+            </div>
+
+        </section>
+
+
+        <!-- TASKS VIEW -->
+        <section id="tasksView" class="view">
+
+            <div class="page-header">
+
+                <div>
+                    <div class="eyebrow">
+                        AUTONOMOUS WORK
+                    </div>
+
+                    <h1>Tasks</h1>
+
+                    <p>
+                        Monitor objectives Nexus is working on.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="empty-state">
+
+                <div class="empty-icon">✓</div>
+
+                <strong>
+                    No tasks
+                </strong>
+
+                <span>
+                    Autonomous objectives will appear here.
+                </span>
+
+            </div>
+
+        </section>
+
+
+        <!-- SETTINGS VIEW -->
+        <section id="settingsView" class="view">
+
+            <div class="page-header">
+
+                <div>
+                    <div class="eyebrow">
+                        CONFIGURATION
+                    </div>
+
+                    <h1>Settings</h1>
+
+                    <p>
+                        Configure Nexus and its AI systems.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="settings-card">
+
+                <div class="setting-row">
+
+                    <div>
+                        <strong>Connection</strong>
+                        <span>Current application mode</span>
+                    </div>
+
+                    <div class="setting-value">
+                        LOCAL
+                    </div>
+
+                </div>
+
+                <div class="setting-row">
+
+                    <div>
+                        <strong>AI Models</strong>
+                        <span>Model providers will appear here</span>
+                    </div>
+
+                    <div class="setting-value">
+                        Not configured
+                    </div>
+
+                </div>
+
+                <div class="setting-row">
+
+                    <div>
+                        <strong>Memory</strong>
+                        <span>Persistent memory system</span>
+                    </div>
+
+                    <div class="setting-value">
+                        Ready
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="bottom-nav">
+
+        <button class="nav-item active" data-view="dashboardView">
+            <span>⌂</span>
+            <small>Home</small>
+        </button>
+
+        <button class="nav-item" data-view="agentsView">
+            <span>✦</span>
+            <small>Agents</small>
+        </button>
+
+        <button class="nav-item" data-view="projectsView">
+            <span>▣</span>
+            <small>Projects</small>
+        </button>
+
+        <button class="nav-item" data-view="tasksView">
+            <span>✓</span>
+            <small>Tasks</small>
+        </button>
+
+        <button class="nav-item" data-view="settingsView">
+            <span>⚙</span>
+            <small>Settings</small>
+        </button>
+
+    </nav>
+
+
+    <!-- AGENT CREATION MODAL -->
+    <div
+        id="agentModal"
+        class="modal-overlay hidden"
+    >
+
+        <div class="modal">
+
+            <div class="modal-header">
+
+                <div>
+                    <div class="eyebrow">
+                        NEW AI WORKER
+                    </div>
+
+                    <h2>Create Agent</h2>
+                </div>
+
+                <button
+                    id="closeAgentModal"
+                    class="icon-button"
+                >
+                    ×
+                </button>
+
+            </div>
+
+            <label>
+                Agent Name
+                <input
+                    id="agentName"
+                    type="text"
+                    placeholder="Example: Researcher"
+                >
+            </label>
+
+            <label>
+                Description
+                <input
+                    id="agentDescription"
+                    type="text"
+                    placeholder="What is this agent responsible for?"
+                >
+            </label>
+
+            <label>
+                System Instructions
+                <textarea
+                    id="agentInstructions"
+                    rows="5"
+                    placeholder="Describe how this agent should behave..."
+                ></textarea>
+            </label>
+
+            <label>
+                Personality
+                <input
+                    id="agentPersonality"
+                    type="text"
+                    placeholder="Professional, analytical, concise..."
+                >
+            </label>
+
+            <div class="permission-section">
+
+                <div class="permission-title">
+                    Permissions
+                </div>
+
+                <label class="checkbox-row">
+                    <input type="checkbox" id="permissionFiles">
+                    <span>File access</span>
+                </label>
+
+                <label class="checkbox-row">
+                    <input type="checkbox" id="permissionWeb">
+                    <span>Web access</span>
+                </label>
+
+                <label class="checkbox-row">
+                    <input type="checkbox" id="permissionTools">
+                    <span>Tools</span>
+                </label>
+
+            </div>
+
+            <button
+                id="saveAgent"
+                class="primary-button full-width"
+            >
+                Create Agent
+            </button>
+
+        </div>
+
     </div>
 
-    <script src="app.js"></script>
+</div>
+
+<script src="app.js"></script>
 
 </body>
 </html>
