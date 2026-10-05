@@ -1,0 +1,9 @@
+{
+  "name": "My App",
+  "short_name": "My App",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#111111",
+  "orientation": "portrait"
+}
