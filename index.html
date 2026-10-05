@@ -442,11 +442,61 @@
 
         <div id="modelsContainer">
 
-            <div class="empty-state">
+    <div class="empty-state">
 
-                <div class="empty-icon">
-                    AI
-                </div>
+        <div class="empty-icon">
+            AI
+        </div>
+
+        <strong>
+            No models configured
+        </strong>
+
+        <span>
+            Models will appear here when
+            they are added to Nexus.
+        </span>
+
+    </div>
+
+</div>
+
+
+<div class="model-test-section">
+
+    <div class="section-title">
+        <span>Model Test</span>
+    </div>
+
+
+    <div class="command-card">
+
+        <textarea
+            id="modelTestInput"
+            placeholder="Ask the active model something..."
+            rows="4"
+        ></textarea>
+
+
+        <button
+            id="testModelButton"
+            class="primary-button"
+            type="button"
+        >
+            Test Model
+        </button>
+
+    </div>
+
+
+    <div
+        id="modelTestOutput"
+        class="task-output"
+    >
+        No model response yet.
+    </div>
+
+</div>
 
 <div class="model-test-section">
 
