@@ -1825,7 +1825,12 @@ async function sendChatMessage() {
             "sendChatButton"
         );
 
-    if (!input) {
+    const container =
+        document.getElementById(
+            "chatMessages"
+        );
+
+    if (!input || !container) {
         return;
     }
 
@@ -1907,7 +1912,27 @@ async function sendChatMessage() {
         ];
 
 
-        const response =
+        const assistantMessage = {
+
+            role: "assistant",
+
+            content: "",
+
+            timestamp:
+                new Date().toISOString()
+
+        };
+
+
+        history.push(
+            assistantMessage
+        );
+
+
+        renderChat();
+
+
+        const stream =
             await webLLMEngine
                 .chat
                 .completions
@@ -1917,35 +1942,39 @@ async function sendChatMessage() {
 
                     temperature: 0.7,
 
-                    max_tokens: 512
+                    max_tokens: 512,
+
+                    stream: true
 
                 });
 
 
-        const responseText =
-            response
-                ?.choices?.[0]
-                ?.message
-                ?.content
-                ||
-            "Nexus returned no response.";
+        for await (
+            const chunk of stream
+        ) {
+
+            const token =
+                chunk
+                    ?.choices?.[0]
+                    ?.delta
+                    ?.content;
 
 
-        history.push({
+            if (!token) {
+                continue;
+            }
 
-            role: "assistant",
 
-            content: responseText,
+            assistantMessage.content +=
+                token;
 
-            timestamp:
-                new Date().toISOString()
 
-        });
+            renderChat();
+
+        }
 
 
         saveChatHistory();
-
-        renderChat();
 
 
     } catch (error) {
@@ -1956,17 +1985,8 @@ async function sendChatMessage() {
         );
 
 
-        history.push({
-
-            role: "assistant",
-
-            content:
-                `Error: ${error.message}`,
-
-            timestamp:
-                new Date().toISOString()
-
-        });
+        assistantMessage.content =
+            `Error: ${error.message}`;
 
 
         saveChatHistory();
