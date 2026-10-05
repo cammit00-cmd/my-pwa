@@ -1015,11 +1015,114 @@ function cancelTask(taskId) {
 
 function renderTasks() {
 
-    const container =
+    const dashboardContainer =
         document.getElementById(
             "tasksContainer"
         );
 
+    const fullContainer =
+        document.getElementById(
+            "fullTasksContainer"
+        );
+
+
+    const activeTasks =
+        state.tasks.filter(
+            task =>
+                task.status === "queued" ||
+                task.status === "running"
+        );
+
+
+    const taskHTML = activeTasks.length
+
+        ? activeTasks
+            .map(task => `
+
+                <div class="task-card">
+
+                    <div class="task-status">
+
+                        <span class="status-dot"></span>
+
+                    </div>
+
+
+                    <div class="task-info">
+
+                        <strong>
+                            ${escapeHTML(
+                                task.objective
+                            )}
+                        </strong>
+
+                        <span>
+                            Agent:
+                            ${escapeHTML(
+                                task.agentName
+                            )}
+                        </span>
+
+
+                        <div class="task-progress">
+
+                            <div
+                                class="task-progress-bar"
+                                style="width: ${task.progress}%"
+                            ></div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="task-state">
+
+                        ${task.progress}%
+
+                    </div>
+
+                </div>
+
+            `)
+            .join("")
+
+        : `
+
+            <div class="empty-state compact">
+
+                <div class="empty-icon">
+                    ✓
+                </div>
+
+                <strong>
+                    No active tasks
+                </strong>
+
+                <span>
+                    Tasks will appear here when Nexus is working.
+                </span>
+
+            </div>
+
+        `;
+
+
+    if (dashboardContainer) {
+
+        dashboardContainer.innerHTML =
+            taskHTML;
+
+    }
+
+
+    if (fullContainer) {
+
+        fullContainer.innerHTML =
+            taskHTML;
+
+    }
+}
 
     if (!container) return;
 
