@@ -1736,80 +1736,37 @@ function saveChatHistory() {
 
 
 function renderChat() {
+    const container = document.getElementById("chatMessages");
+    if (!container) return;
 
-    const container =
-        document.getElementById(
-            "chatMessages"
-        );
+    const history = getChatHistory();
 
-    if (!container) {
-        return;
-    }
-
-
-    const history =
-        getChatHistory();
-
-
-    if (!history.length) {
-
+    if (history.length === 0) {
         container.innerHTML = `
-
             <div class="chat-empty">
-
-                <div class="empty-icon">
-                    AI
-                </div>
-
-                <strong>
-                    Nexus is ready
-                </strong>
-
-                <span>
-                    Start a conversation with your local AI.
-                </span>
-
+                <div class="empty-icon">AI</div>
+                <strong>Nexus is ready</strong>
+                <span>Start a conversation with your local AI.</span>
             </div>
-
         `;
-
         return;
     }
 
+    container.innerHTML = history
+        .map(message => {
+            const roleLabel =
+                message.role === "user" ? "YOU" : "NEXUS";
 
-    container.innerHTML =
-        history
-            .map(message => `
-
-                <div
-                    class="
-                        chat-message
-                        ${message.role === "user"
-                            ? "user-message"
-                            : "assistant-message"}
-                    "
-                >
-
-                    <div class="chat-message-label">
-                        ${
-                            message.role === "user"
-                                ? "YOU"
-                                : "NEXUS"
-                        }
-                    </div>
-
-                    <div class="chat-message-content">
-                        ${escapeHTML(message.content)}
-                    </div>
-
+            return `
+                <div class="chat-message ${message.role}-message">
+                    <div class="chat-message-label">${roleLabel}</div>
+                    <div class="chat-message-content">${formatChatMessage(message.content)}</div>
                 </div>
+            `;
+        })
+        .join("");
 
-            `)
-            .join("");
-
-
-    container.scrollTop =
-        container.scrollHeight;
+    container.scrollTop = container.scrollHeight;
 }
 
 
