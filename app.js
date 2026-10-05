@@ -1201,6 +1201,25 @@ function initializeEvents() {
                 }
             );
 
+document.addEventListener(
+    "click",
+    event => {
+
+        const card =
+            event.target.closest(
+                ".task-card[data-task-id]"
+            );
+
+        if (!card) {
+            return;
+        }
+
+        const taskId =
+            card.dataset.taskId;
+
+        openTaskDetails(taskId);
+    }
+);
         });
 
 
