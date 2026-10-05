@@ -1752,6 +1752,84 @@ function formatChatMessage(text) {
         }
     );
 
+    // Headings
+    html = html.replace(
+        /^### (.*)$/gm,
+        "<h4>$1</h4>"
+    );
+
+    html = html.replace(
+        /^## (.*)$/gm,
+        "<h3>$1</h3>"
+    );
+
+    html = html.replace(
+        /^# (.*)$/gm,
+        "<h2>$1</h2>"
+    );
+
+    // Bold
+    html = html.replace(
+        /\*\*(.*?)\*\*/g,
+        "<strong>$1</strong>"
+    );
+
+    // Italic
+    html = html.replace(
+        /(?<!\*)\*([^*\n]+)\*(?!\*)/g,
+        "<em>$1</em>"
+    );
+
+    // Unordered lists
+    html = html.replace(
+        /^(?:[-*+] .+(?:\n|$))+?/gm,
+        match => {
+            const items = match
+                .trim()
+                .split("\n")
+                .map(line => {
+                    return line.replace(
+                        /^[-*+] (.+)$/,
+                        "<li>$1</li>"
+                    );
+                })
+                .join("");
+
+            return `<ul>${items}</ul>`;
+        }
+    );
+
+    // Ordered lists
+    html = html.replace(
+        /^(?:\d+\. .+(?:\n|$))+?/gm,
+        match => {
+            const items = match
+                .trim()
+                .split("\n")
+                .map(line => {
+                    return line.replace(
+                        /^\d+\. (.+)$/,
+                        "<li>$1</li>"
+                    );
+                })
+                .join("");
+
+            return `<ol>${items}</ol>`;
+        }
+    );
+
+    // Inline code
+    html = html.replace(
+        /`([^`]+)`/g,
+        '<code class="inline-code">$1</code>'
+    );
+
+    // Remaining line breaks
+    html = html.replace(/\n/g, "<br>");
+
+    return html;
+}
+
     // Inline code
     html = html.replace(
         /`([^`]+)`/g,
@@ -1812,197 +1890,100 @@ function renderChat() {
 
 
 async function sendChatMessage() {
+    const input = document.getElementById("chatInput");
+    if (!input) return;
 
-    const input =
-        document.getElementById(
-            "chatInput"
-        );
-
-    const button =
-        document.getElementById(
-            "sendChatButton"
-        );
-
-    const container =
-        document.getElementById(
-            "chatMessages"
-        );
-
-    if (!input || !container) {
-        return;
-    }
-
-
-    const message =
-        input.value.trim();
-
-
-    if (!message) {
-        return;
-    }
-
+    const text = input.value.trim();
+    if (!text) return;
 
     if (!webLLMEngine) {
-
-        alert(
-            "Load the Local AI model first."
-        );
-
+        alert("Load the Local AI model first.");
         return;
     }
 
-
-    const history =
-        getChatHistory();
-
+    const history = getChatHistory();
 
     history.push({
-
         role: "user",
-
-        content: message,
-
-        timestamp:
-            new Date().toISOString()
-
+        content: text
     });
 
-
     input.value = "";
-
     saveChatHistory();
+    renderChat();
+
+    const assistantMessage = {
+        role: "assistant",
+        content: ""
+    };
+
+    history.push(assistantMessage);
 
     renderChat();
 
-
-    if (button) {
-
-        button.disabled = true;
-
-        button.textContent =
-            "Thinking...";
-
-    }
-
-
     try {
+        const messages = history
+            .filter(message => message.role !== "assistant" || message.content)
+            .map(message => ({
+                role: message.role,
+                content: message.content
+            }));
 
-        const messages = [
+        const stream = await webLLMEngine.chat.completions.create({
+            messages: messages,
+            temperature: 0.7,
+            max_tokens: 512,
+            stream: true
+        });
 
-            {
-                role: "system",
+        const container = document.getElementById("chatMessages");
 
-                content:
-                    "You are Nexus, a personal AI assistant. " +
-                    "Be helpful, direct, intelligent, and concise."
-            },
+        let messageElement = null;
 
-            ...history.map(item => ({
+        if (container) {
+            const elements = container.querySelectorAll(".assistant-message");
+            messageElement = elements[elements.length - 1];
+        }
 
-                role:
-                    item.role,
+        const contentElement = messageElement
+            ? messageElement.querySelector(".chat-message-content")
+            : null;
 
-                content:
-                    item.content
-
-            }))
-
-        ];
-
-
-        const assistantMessage = {
-
-            role: "assistant",
-
-            content: "",
-
-            timestamp:
-                new Date().toISOString()
-
-        };
-
-
-        history.push(
-            assistantMessage
-        );
-
-
-        renderChat();
-
-
-        const stream =
-            await webLLMEngine
-                .chat
-                .completions
-                .create({
-
-                    messages: messages,
-
-                    temperature: 0.7,
-
-                    max_tokens: 512,
-
-                    stream: true
-
-                });
-
-
-        for await (
-            const chunk of stream
-        ) {
-
+        for await (const chunk of stream) {
             const token =
-                chunk
-                    ?.choices?.[0]
-                    ?.delta
-                    ?.content;
+                chunk?.choices?.[0]?.delta?.content;
 
+            if (!token) continue;
 
-            if (!token) {
-                continue;
+            assistantMessage.content += token;
+
+            // Update only the current message instead of rebuilding
+            // the entire chat interface on every token.
+            if (contentElement) {
+                contentElement.textContent =
+                    assistantMessage.content;
             }
 
-
-            assistantMessage.content +=
-                token;
-
-
-            renderChat();
-
+            if (container) {
+                container.scrollTop = container.scrollHeight;
+            }
         }
 
-
         saveChatHistory();
 
-
-    } catch (error) {
-
-        console.error(
-            "Nexus chat error:",
-            error
-        );
-
-
-        assistantMessage.content =
-            `Error: ${error.message}`;
-
-
-        saveChatHistory();
-
+        // Render once at the very end so Markdown formatting
+        // is applied to the completed response.
         renderChat();
 
+    } catch (error) {
+        console.error("Nexus chat error:", error);
 
-    } finally {
+        assistantMessage.content =
+            "Nexus encountered an error while generating the response.\n\n" +
+            error.message;
 
-        if (button) {
-
-            button.disabled = false;
-
-            button.textContent =
-                "Send";
-
-        }
-
+        saveChatHistory();
+        renderChat();
     }
 }
 
