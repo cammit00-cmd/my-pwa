@@ -564,6 +564,25 @@ saveState();
 
 renderModels();
 
+const activeModelName =
+    document.getElementById(
+        "activeModelName"
+    );
+
+const activeModelType =
+    document.getElementById(
+        "activeModelType"
+    );
+
+if (activeModelName) {
+    activeModelName.textContent =
+        "Local AI";
+}
+
+if (activeModelType) {
+    activeModelType.textContent =
+        "Local • WebLLM • WebGPU";
+}
 
         if (button) {
 
