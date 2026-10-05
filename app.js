@@ -1,6 +1,22 @@
 const STORAGE_KEY = "nexus_state_v2";
 
+const DEFAULT_MODELS = [
+    {
+        id: "local-free",
+        name: "Local AI",
+        type: "local",
+        provider: "Local",
+        status: "available",
+        description:
+            "A locally running AI model with no per-message cost."
+    }
+];
+
 const defaultState = {
+    models: DEFAULT_MODELS,
+
+    activeModelId: null,
+
     agents: [
         {
             id: "general",
