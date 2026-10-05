@@ -1,9 +1,14 @@
 /* =========================================================
    NEXUS — Phase 1 Frontend Engine
-   Local-first application state + navigation + agents + tasks
+   Compatible with current Nexus HTML
    ========================================================= */
 
 const STORAGE_KEY = "nexus_state_v1";
+
+
+/* =========================================================
+   DEFAULT STATE
+   ========================================================= */
 
 const defaultState = {
     agents: [
@@ -12,7 +17,8 @@ const defaultState = {
             name: "General",
             description: "General-purpose AI assistant",
             personality: "Helpful, precise, adaptable",
-            instructions: "Assist with general tasks and coordinate with other agents when appropriate.",
+            instructions:
+                "Assist with general tasks and coordinate with other agents when appropriate.",
             permissions: {
                 files: true,
                 web: true,
@@ -25,7 +31,8 @@ const defaultState = {
             name: "Researcher",
             description: "Research, investigation, and information analysis",
             personality: "Thorough, skeptical, evidence-driven",
-            instructions: "Research topics, compare sources, identify important information, and summarize findings.",
+            instructions:
+                "Research topics, compare sources, identify important information, and summarize findings.",
             permissions: {
                 files: true,
                 web: true,
@@ -38,7 +45,8 @@ const defaultState = {
             name: "Coder",
             description: "Software development and technical problem solving",
             personality: "Logical, methodical, solution-focused",
-            instructions: "Write, debug, explain, and improve software.",
+            instructions:
+                "Write, debug, explain, and improve software.",
             permissions: {
                 files: true,
                 web: true,
@@ -51,7 +59,8 @@ const defaultState = {
             name: "Writer",
             description: "Writing, editing, and content creation",
             personality: "Clear, creative, adaptable",
-            instructions: "Create and improve written content according to the user's goals.",
+            instructions:
+                "Create and improve written content according to the user's goals.",
             permissions: {
                 files: true,
                 web: false,
@@ -64,7 +73,8 @@ const defaultState = {
             name: "Analyst",
             description: "Data analysis and structured reasoning",
             personality: "Objective, analytical, detail-oriented",
-            instructions: "Analyze information, identify patterns, and produce useful conclusions.",
+            instructions:
+                "Analyze information, identify patterns, and produce useful conclusions.",
             permissions: {
                 files: true,
                 web: true,
@@ -77,7 +87,8 @@ const defaultState = {
             name: "Manager",
             description: "Task planning and multi-agent orchestration",
             personality: "Organized, strategic, decisive",
-            instructions: "Break objectives into tasks and coordinate specialized agents.",
+            instructions:
+                "Break objectives into tasks and coordinate specialized agents.",
             permissions: {
                 files: true,
                 web: true,
@@ -88,9 +99,7 @@ const defaultState = {
     ],
 
     tasks: [],
-
     projects: [],
-
     activity: [],
 
     settings: {
@@ -108,27 +117,53 @@ const defaultState = {
 let state = loadState();
 
 function loadState() {
+
     try {
-        const saved = localStorage.getItem(STORAGE_KEY);
+
+        const saved =
+            localStorage.getItem(STORAGE_KEY);
 
         if (saved) {
+
+            const parsed = JSON.parse(saved);
+
             return {
                 ...defaultState,
-                ...JSON.parse(saved)
+                ...parsed
             };
         }
+
     } catch (error) {
-        console.error("Could not load Nexus state:", error);
+
+        console.error(
+            "Nexus state could not be loaded:",
+            error
+        );
+
     }
 
-    return structuredClone(defaultState);
+    return JSON.parse(
+        JSON.stringify(defaultState)
+    );
 }
 
+
 function saveState() {
+
     try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(state)
+        );
+
     } catch (error) {
-        console.error("Could not save Nexus state:", error);
+
+        console.error(
+            "Nexus state could not be saved:",
+            error
+        );
+
     }
 }
 
@@ -137,42 +172,132 @@ function saveState() {
    UTILITIES
    ========================================================= */
 
-function createId(prefix = "id") {
-    return `${prefix}_${Date.now()}_${Math.random()
-        .toString(36)
-        .substring(2, 9)}`;
+function createId(prefix) {
+
+    return (
+        prefix +
+        "_" +
+        Date.now() +
+        "_" +
+        Math.random()
+            .toString(36)
+            .substring(2, 8)
+    );
 }
+
 
 function escapeHTML(value) {
-    if (value === undefined || value === null) return "";
+
+    if (
+        value === undefined ||
+        value === null
+    ) {
+        return "";
+    }
 
     return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
+
 
 function formatTime(timestamp) {
-    return new Date(timestamp).toLocaleTimeString([], {
-        hour: "numeric",
-        minute: "2-digit"
-    });
+
+    return new Date(timestamp)
+        .toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "2-digit"
+        });
 }
 
-function addActivity(message, type = "info") {
+
+/* =========================================================
+   ACTIVITY
+   ========================================================= */
+
+function addActivity(message) {
+
     state.activity.unshift({
+
         id: createId("activity"),
-        message,
-        type,
+
+        message: message,
+
         timestamp: Date.now()
+
     });
 
-    state.activity = state.activity.slice(0, 50);
+    state.activity =
+        state.activity.slice(0, 50);
 
     saveState();
+
     renderActivity();
+}
+
+
+function renderActivity() {
+
+    const container =
+        document.getElementById(
+            "activityContainer"
+        );
+
+    if (!container) return;
+
+
+    if (!state.activity.length) {
+
+        container.innerHTML = `
+            <div class="empty-state compact">
+                <div class="empty-icon">◌</div>
+
+                <strong>
+                    No recent activity
+                </strong>
+
+                <span>
+                    Nexus activity will appear here.
+                </span>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        state.activity
+            .slice(0, 10)
+            .map(item => `
+
+                <div class="activity-item">
+
+                    <div class="activity-indicator"></div>
+
+                    <div class="activity-content">
+
+                        <strong>
+                            ${escapeHTML(item.message)}
+                        </strong>
+
+                        <span>
+                            Nexus
+                        </span>
+
+                    </div>
+
+                    <time>
+                        ${formatTime(item.timestamp)}
+                    </time>
+
+                </div>
+
+            `)
+            .join("");
 }
 
 
@@ -180,33 +305,40 @@ function addActivity(message, type = "info") {
    NAVIGATION
    ========================================================= */
 
-function showView(viewName) {
+function showView(viewId) {
 
-    document.querySelectorAll(".view").forEach(view => {
-        view.classList.remove("active");
-    });
+    document
+        .querySelectorAll(".view")
+        .forEach(view => {
 
-    const target = document.getElementById(`${viewName}-view`);
+            view.classList.remove("active");
+
+        });
+
+
+    const target =
+        document.getElementById(viewId);
 
     if (target) {
+
         target.classList.add("active");
+
     }
 
-    document.querySelectorAll("[data-view]").forEach(button => {
-        button.classList.toggle(
-            "active",
-            button.dataset.view === viewName
-        );
-    });
 
-    renderCurrentView();
-}
+    document
+        .querySelectorAll(".nav-item")
+        .forEach(button => {
 
-function renderCurrentView() {
-    renderAgents();
-    renderTasks();
-    renderProjects();
-    renderActivity();
+            button.classList.toggle(
+                "active",
+                button.dataset.view === viewId
+            );
+
+        });
+
+
+    renderAll();
 }
 
 
@@ -216,110 +348,482 @@ function renderCurrentView() {
 
 function renderAgents() {
 
-    const containers = document.querySelectorAll(".agent-list");
+    const dashboard =
+        document.getElementById(
+            "agentsContainer"
+        );
 
-    containers.forEach(container => {
+    const full =
+        document.getElementById(
+            "fullAgentsContainer"
+        );
 
-        if (!state.agents.length) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <h3>No agents yet</h3>
-                    <p>Create your first AI agent to begin building Nexus.</p>
-                    <button class="primary-btn" onclick="openAgentModal()">
-                        Create Agent
-                    </button>
-                </div>
-            `;
 
-            return;
-        }
+    if (dashboard) {
 
-        container.innerHTML = state.agents.map(agent => `
-            <div class="agent-card">
+        dashboard.innerHTML =
+            state.agents
+                .map(agent => `
 
-                <div class="agent-avatar">
-                    ${escapeHTML(agent.name.charAt(0).toUpperCase())}
-                </div>
+                    <div class="agent-card">
 
-                <div class="agent-info">
+                        <div class="agent-avatar">
+                            ${escapeHTML(
+                                agent.name
+                                    .charAt(0)
+                                    .toUpperCase()
+                            )}
+                        </div>
 
-                    <div class="agent-name">
-                        ${escapeHTML(agent.name)}
+                        <div class="agent-info">
+
+                            <div class="agent-name">
+                                ${escapeHTML(agent.name)}
+                            </div>
+
+                            <div class="agent-description">
+                                ${escapeHTML(
+                                    agent.description
+                                )}
+                            </div>
+
+                            <div class="agent-meta">
+                                <span>LOCAL</span>
+                                <span>
+                                    ${escapeHTML(
+                                        agent.personality
+                                    )}
+                                </span>
+                            </div>
+
+                        </div>
+
                     </div>
 
-                    <div class="agent-description">
-                        ${escapeHTML(agent.description)}
+                `)
+                .join("");
+
+    }
+
+
+    if (full) {
+
+        full.innerHTML =
+            state.agents
+                .map(agent => `
+
+                    <div class="agent-card">
+
+                        <div class="agent-avatar">
+                            ${escapeHTML(
+                                agent.name
+                                    .charAt(0)
+                                    .toUpperCase()
+                            )}
+                        </div>
+
+                        <div class="agent-info">
+
+                            <div class="agent-name">
+                                ${escapeHTML(agent.name)}
+                            </div>
+
+                            <div class="agent-description">
+                                ${escapeHTML(
+                                    agent.description
+                                )}
+                            </div>
+
+                            <div class="agent-meta">
+
+                                <span>
+                                    LOCAL
+                                </span>
+
+                                <span>
+                                    ${escapeHTML(
+                                        agent.personality
+                                    )}
+                                </span>
+
+                            </div>
+
+                        </div>
+
                     </div>
 
-                    <div class="agent-meta">
-                        <span>LOCAL</span>
-                        <span>${escapeHTML(agent.personality)}</span>
-                    </div>
+                `)
+                .join("");
 
-                </div>
-
-            </div>
-        `).join("");
-    });
+    }
 }
 
 
 /* =========================================================
-   TASKS
+   AGENT MODAL
    ========================================================= */
+
+function openAgentModal() {
+
+    const modal =
+        document.getElementById(
+            "agentModal"
+        );
+
+    if (!modal) {
+
+        console.error(
+            "Nexus: agentModal not found."
+        );
+
+        return;
+    }
+
+
+    modal.classList.remove("hidden");
+
+
+    const nameInput =
+        document.getElementById(
+            "agentName"
+        );
+
+    if (nameInput) {
+
+        setTimeout(() => {
+
+            nameInput.focus();
+
+        }, 100);
+
+    }
+}
+
+
+function closeAgentModal() {
+
+    const modal =
+        document.getElementById(
+            "agentModal"
+        );
+
+    if (!modal) return;
+
+    modal.classList.add("hidden");
+}
+
+
+function clearAgentForm() {
+
+    const fields = [
+
+        "agentName",
+        "agentDescription",
+        "agentInstructions",
+        "agentPersonality"
+
+    ];
+
+
+    fields.forEach(id => {
+
+        const element =
+            document.getElementById(id);
+
+        if (element) {
+
+            element.value = "";
+
+        }
+
+    });
+
+
+    [
+        "permissionFiles",
+        "permissionWeb",
+        "permissionTools"
+    ].forEach(id => {
+
+        const element =
+            document.getElementById(id);
+
+        if (element) {
+
+            element.checked = false;
+
+        }
+
+    });
+
+}
+
+
+function createAgent() {
+
+    const name =
+        document
+            .getElementById("agentName")
+            ?.value
+            .trim();
+
+
+    if (!name) {
+
+        alert(
+            "Please enter a name for your agent."
+        );
+
+        return;
+
+    }
+
+
+    const description =
+        document
+            .getElementById("agentDescription")
+            ?.value
+            .trim();
+
+
+    const instructions =
+        document
+            .getElementById("agentInstructions")
+            ?.value
+            .trim();
+
+
+    const personality =
+        document
+            .getElementById("agentPersonality")
+            ?.value
+            .trim();
+
+
+    const agent = {
+
+        id: createId("agent"),
+
+        name: name,
+
+        description:
+            description ||
+            "Custom Nexus AI worker",
+
+        instructions:
+            instructions ||
+            "Assist the user according to the assigned objective.",
+
+        personality:
+            personality ||
+            "Professional, helpful, adaptable",
+
+        permissions: {
+
+            files:
+                document
+                    .getElementById(
+                        "permissionFiles"
+                    )
+                    ?.checked || false,
+
+            web:
+                document
+                    .getElementById(
+                        "permissionWeb"
+                    )
+                    ?.checked || false,
+
+            tools:
+                document
+                    .getElementById(
+                        "permissionTools"
+                    )
+                    ?.checked || false
+
+        },
+
+        createdAt: Date.now()
+
+    };
+
+
+    state.agents.push(agent);
+
+    saveState();
+
+
+    addActivity(
+        `Agent created: ${agent.name}`
+    );
+
+
+    clearAgentForm();
+
+    closeAgentModal();
+
+    renderAgents();
+
+}
+
+
+/* =========================================================
+   TASK SYSTEM
+   ========================================================= */
+
+function executeCommand() {
+
+    const input =
+        document.getElementById(
+            "commandInput"
+        );
+
+
+    if (!input) return;
+
+
+    const objective =
+        input.value.trim();
+
+
+    if (!objective) {
+
+        input.focus();
+
+        return;
+
+    }
+
+
+    const manager =
+        state.agents.find(
+            agent =>
+                agent.id === "manager"
+        ) ||
+        state.agents[0];
+
+
+    const task = {
+
+        id: createId("task"),
+
+        objective: objective,
+
+        agentId: manager.id,
+
+        agentName: manager.name,
+
+        status: "queued",
+
+        createdAt: Date.now()
+
+    };
+
+
+    state.tasks.unshift(task);
+
+    saveState();
+
+
+    addActivity(
+        `New task created: ${objective}`
+    );
+
+
+    input.value = "";
+
+
+    renderTasks();
+
+
+    showView("tasksView");
+
+}
+
 
 function renderTasks() {
 
-    const containers = document.querySelectorAll(".task-list");
+    const container =
+        document.getElementById(
+            "tasksContainer"
+        );
 
-    containers.forEach(container => {
 
-        const activeTasks = state.tasks
-            .filter(task =>
-                task.status === "running" ||
-                task.status === "queued"
-            );
+    if (!container) return;
 
-        if (!activeTasks.length) {
 
-            container.innerHTML = `
-                <div class="empty-state">
-                    <h3>No active tasks</h3>
-                    <p>Nexus is standing by.</p>
-                </div>
-            `;
+    const activeTasks =
+        state.tasks.filter(
+            task =>
+                task.status === "queued" ||
+                task.status === "running"
+        );
 
-            return;
-        }
 
-        container.innerHTML = activeTasks.map(task => `
+    if (!activeTasks.length) {
 
-            <div class="task-card">
+        container.innerHTML = `
 
-                <div class="task-status">
-                    <span class="status-dot"></span>
+            <div class="empty-state compact">
+
+                <div class="empty-icon">
+                    ✓
                 </div>
 
-                <div class="task-info">
+                <strong>
+                    No active tasks
+                </strong>
 
-                    <strong>
-                        ${escapeHTML(task.objective)}
-                    </strong>
-
-                    <span>
-                        ${escapeHTML(task.agentName)}
-                    </span>
-
-                </div>
-
-                <div class="task-state">
-                    ${escapeHTML(task.status)}
-                </div>
+                <span>
+                    Tasks will appear here when Nexus is working.
+                </span>
 
             </div>
 
-        `).join("");
-    });
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        activeTasks
+            .map(task => `
+
+                <div class="task-card">
+
+                    <div class="task-status">
+                        <span class="status-dot"></span>
+                    </div>
+
+                    <div class="task-info">
+
+                        <strong>
+                            ${escapeHTML(
+                                task.objective
+                            )}
+                        </strong>
+
+                        <span>
+                            Agent:
+                            ${escapeHTML(
+                                task.agentName
+                            )}
+                        </span>
+
+                    </div>
+
+                    <div class="task-state">
+                        ${escapeHTML(
+                            task.status
+                        )}
+                    </div>
+
+                </div>
+
+            `)
+            .join("");
 }
 
 
@@ -327,273 +831,49 @@ function renderTasks() {
    PROJECTS
    ========================================================= */
 
-function renderProjects() {
-
-    const containers = document.querySelectorAll(".project-list");
-
-    containers.forEach(container => {
-
-        if (!state.projects.length) {
-
-            container.innerHTML = `
-                <div class="empty-state">
-                    <h3>No projects yet</h3>
-                    <p>Create a project when you're ready to organize agents, files, tasks, and memory.</p>
-                </div>
-            `;
-
-            return;
-        }
-
-        container.innerHTML = state.projects.map(project => `
-
-            <div class="project-card">
-
-                <div>
-                    <strong>
-                        ${escapeHTML(project.name)}
-                    </strong>
-
-                    <p>
-                        ${escapeHTML(project.description || "No description")}
-                    </p>
-                </div>
-
-            </div>
-
-        `).join("");
-    });
-}
-
-
-/* =========================================================
-   ACTIVITY
-   ========================================================= */
-
-function renderActivity() {
-
-    const containers = document.querySelectorAll(".activity-list");
-
-    containers.forEach(container => {
-
-        if (!state.activity.length) {
-
-            container.innerHTML = `
-                <div class="empty-state">
-                    <h3>No activity yet</h3>
-                    <p>Your Nexus activity will appear here.</p>
-                </div>
-            `;
-
-            return;
-        }
-
-        container.innerHTML = state.activity
-            .slice(0, 15)
-            .map(item => `
-
-                <div class="activity-item">
-
-                    <div class="activity-indicator"></div>
-
-                    <div class="activity-content">
-
-                        <div>
-                            ${escapeHTML(item.message)}
-                        </div>
-
-                        <small>
-                            ${formatTime(item.timestamp)}
-                        </small>
-
-                    </div>
-
-                </div>
-
-            `)
-            .join("");
-    });
-}
-
-
-/* =========================================================
-   COMMAND SYSTEM
-   ========================================================= */
-
-function executeCommand() {
-
-    const input = document.getElementById("command-input");
-
-    if (!input) return;
-
-    const objective = input.value.trim();
-
-    if (!objective) {
-        input.focus();
-        return;
-    }
-
-    const manager =
-        state.agents.find(agent => agent.id === "manager") ||
-        state.agents[0];
-
-    const task = {
-        id: createId("task"),
-        objective,
-        agentId: manager.id,
-        agentName: manager.name,
-        status: "queued",
-        createdAt: Date.now()
-    };
-
-    state.tasks.unshift(task);
-
-    saveState();
-
-    addActivity(
-        `New task created: ${objective}`,
-        "task"
-    );
-
-    input.value = "";
-
-    renderTasks();
-
-    /*
-       Phase 1 intentionally stops here.
-
-       The task exists locally and is persistent.
-
-       Later phases will replace this with:
-
-       objective
-          ↓
-       manager
-          ↓
-       planning
-          ↓
-       agent selection
-          ↓
-       tool selection
-          ↓
-       tool execution
-          ↓
-       observation
-          ↓
-       evaluation
-          ↓
-       correction
-          ↓
-       completion
-    */
-
-    showView("tasks");
-}
-
-
-/* =========================================================
-   AGENT CREATION
-   ========================================================= */
-
-function openAgentModal() {
-
-    const modal = document.getElementById("agent-modal");
-
-    if (!modal) return;
-
-    modal.classList.add("active");
-
-    const nameInput =
-        document.getElementById("agent-name");
-
-    if (nameInput) {
-        setTimeout(() => nameInput.focus(), 100);
-    }
-}
-
-function closeAgentModal() {
-
-    const modal = document.getElementById("agent-modal");
-
-    if (!modal) return;
-
-    modal.classList.remove("active");
-}
-
-function createAgent() {
+function newProject() {
 
     const name =
-        document.getElementById("agent-name")?.value.trim();
+        prompt("Enter a project name:");
 
-    const description =
-        document.getElementById("agent-description")?.value.trim();
+    if (!name) return;
 
-    const instructions =
-        document.getElementById("agent-instructions")?.value.trim();
 
-    const personality =
-        document.getElementById("agent-personality")?.value.trim();
+    const project = {
 
-    if (!name) {
-        alert("Agent name is required.");
-        return;
-    }
+        id: createId("project"),
 
-    const agent = {
-        id: createId("agent"),
-        name,
-        description: description || "Custom Nexus agent",
-        instructions:
-            instructions ||
-            "Assist the user according to the assigned objective.",
-        personality:
-            personality ||
-            "Professional, helpful, and adaptable",
+        name: name.trim(),
 
-        permissions: {
-            files:
-                document.getElementById("agent-files")?.checked ?? false,
-
-            web:
-                document.getElementById("agent-web")?.checked ?? false,
-
-            tools:
-                document.getElementById("agent-tools")?.checked ?? false
-        },
+        description:
+            "Nexus workspace",
 
         createdAt: Date.now()
+
     };
 
-    state.agents.push(agent);
+
+    state.projects.push(project);
 
     saveState();
 
+
     addActivity(
-        `Agent created: ${agent.name}`,
-        "agent"
+        `Project created: ${project.name}`
     );
 
-    clearAgentForm();
-    closeAgentModal();
 
-    renderAgents();
+    showView("projectsView");
+
 }
 
-function clearAgentForm() {
 
-    [
-        "agent-name",
-        "agent-description",
-        "agent-instructions",
-        "agent-personality"
-    ].forEach(id => {
+function renderProjects() {
 
-        const element = document.getElementById(id);
+    /* Projects are intentionally simple
+       in Phase 1. The full project workspace
+       comes later. */
 
-        if (element) {
-            element.value = "";
-        }
-    });
 }
 
 
@@ -601,227 +881,360 @@ function clearAgentForm() {
    QUICK ACTIONS
    ========================================================= */
 
-function newProject() {
-
-    const name = prompt("Project name:");
-
-    if (!name) return;
-
-    const project = {
-        id: createId("project"),
-        name: name.trim(),
-        description: "",
-        createdAt: Date.now()
-    };
-
-    state.projects.push(project);
-
-    saveState();
-
-    addActivity(
-        `Project created: ${project.name}`,
-        "project"
-    );
-
-    renderProjects();
-
-    showView("projects");
-}
-
 function newTask() {
 
-    const input = document.getElementById("command-input");
+    showView("dashboardView");
+
+
+    const input =
+        document.getElementById(
+            "commandInput"
+        );
+
 
     if (input) {
-        input.focus();
-        showView("dashboard");
+
+        setTimeout(() => {
+
+            input.focus();
+
+        }, 100);
+
     }
+
 }
+
 
 function openChat() {
 
-    const input = document.getElementById("command-input");
+    showView("dashboardView");
+
+
+    const input =
+        document.getElementById(
+            "commandInput"
+        );
+
 
     if (input) {
-        showView("dashboard");
-        input.focus();
+
+        setTimeout(() => {
+
+            input.focus();
+
+        }, 100);
+
     }
+
 }
 
 
 /* =========================================================
-   SETTINGS
+   RENDER
    ========================================================= */
 
-function toggleSetting(settingName) {
+function renderAll() {
 
-    if (!(settingName in state.settings)) return;
+    renderAgents();
 
-    state.settings[settingName] =
-        !state.settings[settingName];
+    renderTasks();
 
-    saveState();
+    renderProjects();
 
-    addActivity(
-        `Setting changed: ${settingName}`,
-        "settings"
-    );
+    renderActivity();
 
-    renderSettings();
-}
-
-function setSecurityLevel(level) {
-
-    state.settings.securityLevel = level;
-
-    saveState();
-
-    addActivity(
-        `Security level changed to ${level}`,
-        "settings"
-    );
-
-    renderSettings();
-}
-
-function renderSettings() {
-
-    const securityElement =
-        document.getElementById("security-level");
-
-    if (securityElement) {
-        securityElement.value =
-            state.settings.securityLevel;
-    }
-
-    const localFirst =
-        document.getElementById("local-first");
-
-    if (localFirst) {
-        localFirst.checked =
-            state.settings.localFirst;
-    }
-
-    const autoApprove =
-        document.getElementById("auto-approve");
-
-    if (autoApprove) {
-        autoApprove.checked =
-            state.settings.autoApproveSafeActions;
-    }
 }
 
 
 /* =========================================================
-   EVENT LISTENERS
+   EVENT WIRING
    ========================================================= */
 
-document.addEventListener("DOMContentLoaded", () => {
-
-    /* Navigation */
-
-    document.querySelectorAll("[data-view]").forEach(button => {
-
-        button.addEventListener("click", () => {
-
-            showView(button.dataset.view);
-
-        });
-
-    });
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
 
 
-    /* Command input */
+        /* -----------------------------------------
+           Navigation
+        ----------------------------------------- */
 
-    const commandInput =
-        document.getElementById("command-input");
+        document
+            .querySelectorAll(
+                ".nav-item"
+            )
+            .forEach(button => {
 
-    if (commandInput) {
+                button.addEventListener(
+                    "click",
+                    () => {
 
-        commandInput.addEventListener("keydown", event => {
+                        showView(
+                            button.dataset.view
+                        );
 
-            if (
-                event.key === "Enter" &&
-                !event.shiftKey
-            ) {
-                event.preventDefault();
-                executeCommand();
-            }
+                    }
+                );
 
-        });
+            });
+
+
+        /* -----------------------------------------
+           Quick Actions
+        ----------------------------------------- */
+
+        document
+            .querySelectorAll(
+                ".action-card"
+            )
+            .forEach(button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        const action =
+                            button.dataset.action;
+
+
+                        if (
+                            action ===
+                            "agent"
+                        ) {
+
+                            openAgentModal();
+
+                        }
+
+
+                        if (
+                            action ===
+                            "project"
+                        ) {
+
+                            newProject();
+
+                        }
+
+
+                        if (
+                            action ===
+                            "task"
+                        ) {
+
+                            newTask();
+
+                        }
+
+
+                        if (
+                            action ===
+                            "chat"
+                        ) {
+
+                            openChat();
+
+                        }
+
+                    }
+                );
+
+            });
+
+
+        /* -----------------------------------------
+           Create Agent button
+        ----------------------------------------- */
+
+        const createButton =
+            document.getElementById(
+                "createAgentButton"
+            );
+
+
+        if (createButton) {
+
+            createButton.addEventListener(
+                "click",
+                openAgentModal
+            );
+
+        }
+
+
+        /* -----------------------------------------
+           Save Agent
+        ----------------------------------------- */
+
+        const saveButton =
+            document.getElementById(
+                "saveAgent"
+            );
+
+
+        if (saveButton) {
+
+            saveButton.addEventListener(
+                "click",
+                createAgent
+            );
+
+        }
+
+
+        /* -----------------------------------------
+           Close Agent Modal
+        ----------------------------------------- */
+
+        const closeButton =
+            document.getElementById(
+                "closeAgentModal"
+            );
+
+
+        if (closeButton) {
+
+            closeButton.addEventListener(
+                "click",
+                closeAgentModal
+            );
+
+        }
+
+
+        /* -----------------------------------------
+           Close modal by tapping outside
+        ----------------------------------------- */
+
+        const modal =
+            document.getElementById(
+                "agentModal"
+            );
+
+
+        if (modal) {
+
+            modal.addEventListener(
+                "click",
+                event => {
+
+                    if (
+                        event.target ===
+                        modal
+                    ) {
+
+                        closeAgentModal();
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        /* -----------------------------------------
+           Execute Command
+        ----------------------------------------- */
+
+        const executeButton =
+            document.getElementById(
+                "executeCommand"
+            );
+
+
+        if (executeButton) {
+
+            executeButton.addEventListener(
+                "click",
+                executeCommand
+            );
+
+        }
+
+
+        /* -----------------------------------------
+           Command keyboard shortcut
+        ----------------------------------------- */
+
+        const commandInput =
+            document.getElementById(
+                "commandInput"
+            );
+
+
+        if (commandInput) {
+
+            commandInput.addEventListener(
+                "keydown",
+                event => {
+
+                    if (
+                        event.key ===
+                            "Enter" &&
+                        !event.shiftKey
+                    ) {
+
+                        event.preventDefault();
+
+                        executeCommand();
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        /* -----------------------------------------
+           Initial render
+        ----------------------------------------- */
+
+        renderAll();
+
+
+        console.log(
+            "Nexus initialized successfully."
+        );
 
     }
-
-
-    /* Modal close when tapping outside */
-
-    const modal =
-        document.getElementById("agent-modal");
-
-    if (modal) {
-
-        modal.addEventListener("click", event => {
-
-            if (event.target === modal) {
-                closeAgentModal();
-            }
-
-        });
-
-    }
-
-
-    /* Initial rendering */
-
-    renderCurrentView();
-    renderSettings();
-
-    addActivity(
-        "Nexus initialized",
-        "system"
-    );
-});
+);
 
 
 /* =========================================================
    SERVICE WORKER
    ========================================================= */
 
-if ("serviceWorker" in navigator) {
+if (
+    "serviceWorker" in navigator
+) {
 
-    window.addEventListener("load", () => {
+    window.addEventListener(
+        "load",
+        () => {
 
-        navigator.serviceWorker
-            .register("./service-worker.js")
-            .then(() => {
-                console.log("Nexus service worker registered.");
-            })
-            .catch(error => {
-                console.error(
-                    "Service worker registration failed:",
-                    error
-                );
-            });
+            navigator.serviceWorker
+                .register(
+                    "./service-worker.js"
+                )
+                .then(() => {
 
-    });
+                    console.log(
+                        "Nexus service worker registered."
+                    );
+
+                })
+                .catch(error => {
+
+                    console.error(
+                        "Service worker registration failed:",
+                        error
+                    );
+
+                });
+
+        }
+    );
 
 }
-
-
-/* =========================================================
-   GLOBAL FUNCTIONS
-   ========================================================= */
-
-window.showView = showView;
-window.executeCommand = executeCommand;
-
-window.openAgentModal = openAgentModal;
-window.closeAgentModal = closeAgentModal;
-window.createAgent = createAgent;
-
-window.newProject = newProject;
-window.newTask = newTask;
-window.openChat = openChat;
-
-window.toggleSetting = toggleSetting;
-window.setSecurityLevel = setSecurityLevel;
