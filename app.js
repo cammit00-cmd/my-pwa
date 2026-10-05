@@ -398,6 +398,58 @@ function selectModel(modelId) {
     renderAll();
 }
 
+async function testActiveModel() {
+
+    const input =
+        document.getElementById(
+            "modelTestInput"
+        );
+
+    const output =
+        document.getElementById(
+            "modelTestOutput"
+        );
+
+    if (!input || !output) {
+        return;
+    }
+
+
+    const prompt =
+        input.value.trim();
+
+
+    if (!prompt) {
+
+        output.textContent =
+            "Enter a prompt first.";
+
+        return;
+    }
+
+
+    output.textContent =
+        "Connecting to model...";
+
+
+    try {
+
+        const response =
+            await generateAIResponse(
+                prompt
+            );
+
+        output.textContent =
+            response;
+
+    } catch (error) {
+
+        output.textContent =
+            `Model error: ${error.message}`;
+
+    }
+}
+
 /* ================================
    AI MODEL GATEWAY
    ================================ */
@@ -1473,6 +1525,20 @@ function renderAll() {
    ================================ */
 
 function initializeEvents() {
+
+const testModelButton =
+    document.getElementById(
+        "testModelButton"
+    );
+
+if (testModelButton) {
+
+    testModelButton.addEventListener(
+        "click",
+        testActiveModel
+    );
+
+}
 
     document
         .querySelectorAll(".nav-item")
