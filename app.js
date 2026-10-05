@@ -2087,6 +2087,7 @@ function renderAll() {
     renderTasks();
     renderActivity();
     renderModels();
+    renderChat();
 }
 
 
