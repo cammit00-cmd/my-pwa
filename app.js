@@ -809,6 +809,251 @@ function renderTasks() {
             ? activeTasks
                 .map(task => `
 
+                    <div
+                        class="task-card"
+                        data-task-id="${task.id}"
+                    >
+
+                        <div class="task-status">
+
+                            <span
+                                class="status-dot"
+                            ></span>
+
+                        </div>
+
+
+                        <div class="task-info">
+
+                            <strong>
+                                ${escapeHTML(
+                                    task.objective
+                                )}
+                            </strong>
+
+                            <span>
+                                Agent:
+                                ${escapeHTML(
+                                    task.agentName
+                                )}
+                            </span>
+
+
+                            <div
+                                class="task-progress"
+                            >
+
+                                <div
+                                    class="task-progress-bar"
+                                    style="
+                                        width:
+                                        ${task.progress}%
+                                    "
+                                ></div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="task-state">
+
+                            ${task.progress}%
+
+                        </div>
+
+                    </div>
+
+                `)
+                .join("")
+
+            : `
+
+                <div class="empty-state compact">
+
+                    <div class="empty-icon">
+                        ✓
+                    </div>
+
+                    <strong>
+                        No active tasks
+                    </strong>
+
+                    <span>
+                        Tasks will appear here
+                        when Nexus is working.
+                    </span>
+
+                </div>
+
+            `;
+
+
+    // --------------------------------
+    // COMPLETED TASKS
+    // --------------------------------
+
+    const completedTasks =
+        state.tasks.filter(
+            task =>
+                task.status === "completed"
+        );
+
+
+    const completedHTML =
+        completedTasks.length
+
+            ? completedTasks
+                .map(task => `
+
+                    <div
+                        class="task-card"
+                        data-task-id="${task.id}"
+                    >
+
+                        <div class="task-status">
+
+                            <span
+                                class="status-dot"
+                            ></span>
+
+                        </div>
+
+
+                        <div class="task-info">
+
+                            <strong>
+                                ${escapeHTML(
+                                    task.objective
+                                )}
+                            </strong>
+
+                            <span>
+                                Agent:
+                                ${escapeHTML(
+                                    task.agentName
+                                )}
+                            </span>
+
+                            <span>
+                                Completed:
+                                ${new Date(
+                                    task.completedAt
+                                ).toLocaleString()}
+                            </span>
+
+                        </div>
+
+
+                        <div class="task-state">
+
+                            ✓ 100%
+
+                        </div>
+
+                    </div>
+
+                `)
+                .join("")
+
+            : `
+
+                <div class="empty-state compact">
+
+                    <div class="empty-icon">
+                        ✓
+                    </div>
+
+                    <strong>
+                        No completed tasks
+                    </strong>
+
+                    <span>
+                        Completed objectives
+                        will appear here.
+                    </span>
+
+                </div>
+
+            `;
+
+
+    // --------------------------------
+    // UPDATE DASHBOARD
+    // --------------------------------
+
+    if (dashboardContainer) {
+
+        dashboardContainer.innerHTML =
+            activeHTML;
+
+    }
+
+
+    // --------------------------------
+    // UPDATE TASK PAGE
+    // --------------------------------
+
+    if (fullContainer) {
+
+        fullContainer.innerHTML =
+            activeHTML;
+
+    }
+
+
+    if (completedContainer) {
+
+        completedContainer.innerHTML =
+            completedHTML;
+
+    }
+
+
+    // --------------------------------
+    // MAKE TASKS CLICKABLE
+    // --------------------------------
+
+    document
+        .querySelectorAll(
+            ".task-card[data-task-id]"
+        )
+        .forEach(card => {
+
+            card.addEventListener(
+                "click",
+                () => {
+
+                    const taskId =
+                        card.dataset.taskId;
+
+                    openTaskDetails(taskId);
+
+                }
+            );
+
+        });
+
+}
+
+    // --------------------------------
+    // RUNNING TASKS
+    // --------------------------------
+
+    const activeTasks =
+        state.tasks.filter(
+            task =>
+                task.status === "queued" ||
+                task.status === "running"
+        );
+
+
+    const activeHTML =
+        activeTasks.length
+
+            ? activeTasks
+                .map(task => `
+
                     <div class="task-card">
 
                         <div class="task-status">
