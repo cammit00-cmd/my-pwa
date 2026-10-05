@@ -580,5 +580,181 @@
 
 <script src="app.js"></script>
 
+<!-- TASK DETAILS MODAL -->
+
+<div
+    id="taskDetailsModal"
+    class="modal-overlay hidden"
+>
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <div>
+                <h2>Task Details</h2>
+                <p id="taskDetailsStatus">
+                    Task information
+                </p>
+            </div>
+
+            <button
+                id="closeTaskDetails"
+                class="icon-button"
+                type="button"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="task-details-content">
+
+            <div class="detail-section">
+
+                <span class="detail-label">
+                    OBJECTIVE
+                </span>
+
+                <strong
+                    id="taskDetailsObjective"
+                    class="detail-value"
+                >
+                    —
+                </strong>
+
+            </div>
+
+
+            <div class="detail-grid">
+
+                <div class="detail-section">
+
+                    <span class="detail-label">
+                        AGENT
+                    </span>
+
+                    <span
+                        id="taskDetailsAgent"
+                        class="detail-value"
+                    >
+                        —
+                    </span>
+
+                </div>
+
+
+                <div class="detail-section">
+
+                    <span class="detail-label">
+                        STATUS
+                    </span>
+
+                    <span
+                        id="taskDetailsState"
+                        class="detail-value"
+                    >
+                        —
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="detail-section">
+
+                <span class="detail-label">
+                    EXECUTION
+                </span>
+
+                <div
+                    id="taskDetailsSteps"
+                    class="task-detail-steps"
+                >
+                </div>
+
+            </div>
+
+
+            <div class="detail-section">
+
+                <span class="detail-label">
+                    OUTPUT
+                </span>
+
+                <div
+                    id="taskDetailsOutput"
+                    class="task-output"
+                >
+                    No output generated yet.
+                </div>
+
+            </div>
+
+
+            <div class="detail-grid">
+
+                <div class="detail-section">
+
+                    <span class="detail-label">
+                        CREATED
+                    </span>
+
+                    <span
+                        id="taskDetailsCreated"
+                        class="detail-value"
+                    >
+                        —
+                    </span>
+
+                </div>
+
+
+                <div class="detail-section">
+
+                    <span class="detail-label">
+                        COMPLETED
+                    </span>
+
+                    <span
+                        id="taskDetailsCompleted"
+                        class="detail-value"
+                    >
+                        —
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="modal-actions">
+
+            <button
+                id="retryTaskButton"
+                class="secondary-button"
+                type="button"
+            >
+                Retry
+            </button>
+
+            <button
+                id="deleteTaskButton"
+                class="danger-button"
+                type="button"
+            >
+                Delete
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
 </body>
 </html>
