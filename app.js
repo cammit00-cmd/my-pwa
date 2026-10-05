@@ -398,6 +398,71 @@ function selectModel(modelId) {
     renderAll();
 }
 
+function testWebGPU() {
+
+    const status =
+        document.getElementById(
+            "webgpuStatus"
+        );
+
+    if (!status) {
+        return;
+    }
+
+
+    if (!("gpu" in navigator)) {
+
+        status.textContent =
+            "WebGPU is not available in this browser.";
+
+        return;
+    }
+
+
+    status.textContent =
+        "WebGPU detected. Checking GPU adapter...";
+
+
+    navigator.gpu.requestAdapter()
+        .then(adapter => {
+
+            if (!adapter) {
+
+                status.textContent =
+                    "WebGPU is available, but no compatible GPU adapter was found.";
+
+                return;
+            }
+
+
+            const info =
+                adapter.info || {};
+
+
+            const vendor =
+                info.vendor ||
+                "Unknown";
+
+            const architecture =
+                info.architecture ||
+                "Unknown";
+
+
+            status.textContent =
+                `WebGPU is ready.\n\n` +
+                `Vendor: ${vendor}\n` +
+                `Architecture: ${architecture}\n\n` +
+                `Nexus can attempt local AI inference on this device.`;
+
+        })
+        .catch(error => {
+
+            status.textContent =
+                `WebGPU test failed: ${error.message}`;
+
+        });
+}
+
 async function testActiveModel() {
 
     const input =
