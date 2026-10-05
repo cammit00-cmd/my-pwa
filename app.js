@@ -606,19 +606,13 @@ function cancelTask(taskId) {
 function renderTasks() {
 
     const dashboardContainer =
-        document.getElementById(
-            "tasksContainer"
-        );
+        document.getElementById("tasksContainer");
 
     const fullContainer =
-        document.getElementById(
-            "fullTasksContainer"
-        );
+        document.getElementById("fullTasksContainer");
 
     const completedContainer =
-        document.getElementById(
-            "completedTasksContainer"
-        );
+        document.getElementById("completedTasksContainer");
 
 
     const activeTasks =
@@ -637,42 +631,29 @@ function renderTasks() {
 
                     <div
                         class="task-card"
-                        data-task-id="${task.id}"
+                        data-task-id="${escapeHTML(task.id)}"
                     >
 
                         <div class="task-status">
-
-                            <span
-                                class="status-dot"
-                            ></span>
-
+                            <span class="status-dot"></span>
                         </div>
 
                         <div class="task-info">
 
                             <strong>
-                                ${escapeHTML(
-                                    task.objective
-                                )}
+                                ${escapeHTML(task.objective)}
                             </strong>
 
                             <span>
                                 Agent:
-                                ${escapeHTML(
-                                    task.agentName
-                                )}
+                                ${escapeHTML(task.agentName)}
                             </span>
 
-                            <div
-                                class="task-progress"
-                            >
+                            <div class="task-progress">
 
                                 <div
                                     class="task-progress-bar"
-                                    style="
-                                        width:
-                                        ${task.progress}%
-                                    "
+                                    style="width: ${task.progress}%"
                                 ></div>
 
                             </div>
@@ -692,17 +673,14 @@ function renderTasks() {
 
                 <div class="empty-state compact">
 
-                    <div class="empty-icon">
-                        ✓
-                    </div>
+                    <div class="empty-icon">✓</div>
 
                     <strong>
                         No active tasks
                     </strong>
 
                     <span>
-                        Tasks will appear here
-                        when Nexus is working.
+                        Tasks will appear here when Nexus is working.
                     </span>
 
                 </div>
@@ -725,39 +703,33 @@ function renderTasks() {
 
                     <div
                         class="task-card"
-                        data-task-id="${task.id}"
+                        data-task-id="${escapeHTML(task.id)}"
                     >
 
                         <div class="task-status">
-
-                            <span
-                                class="status-dot"
-                            ></span>
-
+                            <span class="status-dot"></span>
                         </div>
 
                         <div class="task-info">
 
                             <strong>
-                                ${escapeHTML(
-                                    task.objective
-                                )}
+                                ${escapeHTML(task.objective)}
                             </strong>
 
                             <span>
                                 Agent:
-                                ${escapeHTML(
-                                    task.agentName
-                                )}
+                                ${escapeHTML(task.agentName)}
                             </span>
 
                             <span>
                                 Completed:
-                                ${task.completedAt
-                                    ? new Date(
-                                        task.completedAt
-                                    ).toLocaleString()
-                                    : "—"}
+                                ${
+                                    task.completedAt
+                                        ? new Date(
+                                            task.completedAt
+                                        ).toLocaleString()
+                                        : "—"
+                                }
                             </span>
 
                         </div>
@@ -775,17 +747,14 @@ function renderTasks() {
 
                 <div class="empty-state compact">
 
-                    <div class="empty-icon">
-                        ✓
-                    </div>
+                    <div class="empty-icon">✓</div>
 
                     <strong>
                         No completed tasks
                     </strong>
 
                     <span>
-                        Completed objectives
-                        will appear here.
+                        Completed objectives will appear here.
                     </span>
 
                 </div>
@@ -794,39 +763,16 @@ function renderTasks() {
 
 
     if (dashboardContainer) {
-        dashboardContainer.innerHTML =
-            activeHTML;
+        dashboardContainer.innerHTML = activeHTML;
     }
 
     if (fullContainer) {
-        fullContainer.innerHTML =
-            activeHTML;
+        fullContainer.innerHTML = activeHTML;
     }
 
     if (completedContainer) {
-        completedContainer.innerHTML =
-            completedHTML;
+        completedContainer.innerHTML = completedHTML;
     }
-
-
-    document
-        .querySelectorAll(
-            ".task-card[data-task-id]"
-        )
-        .forEach(card => {
-
-            card.addEventListener(
-                "click",
-                () => {
-
-                    openTaskDetails(
-                        card.dataset.taskId
-                    );
-
-                }
-            );
-
-        });
 }
 
 
