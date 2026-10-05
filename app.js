@@ -1591,6 +1591,20 @@ function renderAll() {
 
 function initializeEvents() {
 
+const testWebGPUButton =
+    document.getElementById(
+        "testWebGPUButton"
+    );
+
+if (testWebGPUButton) {
+
+    testWebGPUButton.addEventListener(
+        "click",
+        testWebGPU
+    );
+
+}
+
 const testModelButton =
     document.getElementById(
         "testModelButton"
