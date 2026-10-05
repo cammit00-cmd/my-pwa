@@ -399,6 +399,55 @@ function selectModel(modelId) {
 }
 
 /* ================================
+   AI MODEL GATEWAY
+   ================================ */
+
+async function generateAIResponse(prompt) {
+
+    const activeModel =
+        state.models.find(
+            model =>
+                model.id ===
+                state.activeModelId
+        );
+
+    if (!activeModel) {
+        throw new Error(
+            "No AI model is currently selected."
+        );
+    }
+
+
+    /*
+     * The model gateway is intentionally
+     * separate from the task engine.
+     *
+     * This lets Nexus eventually support:
+     *
+     * Local models
+     * Free self-hosted models
+     * OpenAI-compatible local servers
+     * Other compatible providers
+     *
+     * without changing the rest of Nexus.
+     */
+
+
+    if (activeModel.type === "local") {
+
+        throw new Error(
+            "The local AI runtime has not been connected yet."
+        );
+
+    }
+
+
+    throw new Error(
+        `No model gateway exists for ${activeModel.name}.`
+    );
+}
+
+/* ================================
    AGENTS
    ================================ */
 
