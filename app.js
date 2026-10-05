@@ -557,6 +557,12 @@ async function loadLocalModel() {
                 "Local AI model is ready.";
 
         }
+        
+        state.activeModelId = "local-free";
+
+saveState();
+
+renderModels();
 
 
         if (button) {
