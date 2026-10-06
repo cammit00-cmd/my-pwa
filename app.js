@@ -1884,10 +1884,7 @@ function initializeEvents() {
      * this safely does nothing.
      */
 
-    const loadModelButton =
-        document.getElementById(
-            "loadLocalModelButton"
-        );
+    const loadButton = document.getElementById("loadModelButton");
 
     if (loadModelButton) {
         loadModelButton.addEventListener(
